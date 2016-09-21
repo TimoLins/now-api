@@ -290,6 +290,48 @@ Now.prototype = {
   },
 
   /**
+   * Get DNS records configured for a domain name.
+   * @return {Promise}
+   * @param  {String} domain          Domain name
+   * @param  {Function} [callback]    Callback will be called with `(err, records)`
+   */
+  getDomainRecords(domain, callback) {
+    return this.handleRequest({
+      url: `/domains/${domain}/records`,
+      method: 'get'
+    }, callback, 'records')
+  },
+
+  /**
+   * Add a DNS record for a domain name.
+   * @return {Promise}
+   * @param  {String} domain          Domain name
+   * @param  {Object} recordData      Record data
+   * @param  {Function} [callback]    Callback will be called with `(err, result)`
+   */
+  addDomainRecord(domain, recordData, callback) {
+    return this.handleRequest({
+      url: `/domains/${domain}/records`,
+      method: 'post',
+      data: recordData
+    }, callback)
+  },
+
+  /**
+   * Remove a DNS record associated with a domain.
+   * @return {Promise}
+   * @param {String} domain           Domain name
+   * @param {String} recordId         Record ID
+   * @param  {Function} [callback]    Callback will be called with `(err, result)`
+   */
+  deleteDomainRecord(domain, recordId, callback) {
+    return this.handleRequest({
+      url: `/domains/${domain}/records/${recordId}`,
+      method: 'delete'
+    }, callback)
+  },
+
+  /**
    * Returns an array of all certificates.
    * @return {Promise}
    * @param  {String|Function} [cn OR callback]     Common name or callback
