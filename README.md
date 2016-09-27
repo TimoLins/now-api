@@ -254,7 +254,7 @@ Changes the name of the given secret and returns its ID and name.
 Deletes a secret and returns its ID.
 
 **Kind**: instance method of <code>[Now](#Now)</code>  
-**See**: https://zeit.co/api#delete-user-aliases  
+**See**: https://zeit.co/api#delete-now-secrets  
 
 | Param | Type | Description |
 | --- | --- | --- |
