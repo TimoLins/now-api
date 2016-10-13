@@ -6,7 +6,7 @@
   "scripts": {
     "build": "babel -d ./dist src",
     "prepublish": "npm run build",
-    "test": "xo && mocha test/index.js --compilers js:babel-register"
+    "test": "xo && ava --timeout=30s"
   },
   "files": [
     "dist"
@@ -17,8 +17,7 @@
     "space": true,
     "semicolon": false,
     "env": [
-      "node",
-      "mocha"
+      "node"
     ],
     "rules": {
       "quote-props": 0
@@ -38,11 +37,12 @@
   "author": "Timo Lins <me@timo.sh> (https://timo.sh)",
   "license": "MIT",
   "devDependencies": {
+    "ava": "^0.16.0",
+    "ava-spec": "^1.0.1",
     "babel-cli": "^6.10.1",
     "babel-preset-es2015": "^6.9.0",
     "babel-register": "^6.9.0",
     "chai": "^3.5.0",
-    "mocha": "^2.5.3",
     "xo": "^0.17.0"
   },
   "dependencies": {
