@@ -75,7 +75,7 @@ function Now(token = _getToken()) {
   this.token = token
 
   this.request = request.defaults({
-    baseUrl: 'https://api.zeit.co/now',
+    baseUrl: 'https://api.zeit.co',
     timeout: 30000,
     json: true,
     headers: {
@@ -132,7 +132,7 @@ Now.prototype = {
    */
   getDeployments(callback) {
     return this.handleRequest({
-      url: '/deployments',
+      url: '/now/deployments',
       method: 'get'
     }, callback, 'deployments')
   },
@@ -150,7 +150,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/deployments/${id}`,
+      url: `/now/deployments/${id}`,
       method: 'get'
     }, callback)
   },
@@ -170,7 +170,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: '/deployments',
+      url: '/now/deployments',
       method: 'post',
       body
     }, callback)
@@ -189,7 +189,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/deployments/${id}`,
+      url: `/now/deployments/${id}`,
       method: 'delete'
     }, callback)
   },
@@ -207,7 +207,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/deployments/${id}/files`,
+      url: `/now/deployments/${id}/files`,
       method: 'get'
     }, callback)
   },
@@ -230,7 +230,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/deployments/${id}/files/${fileId}`,
+      url: `/now/deployments/${id}/files/${fileId}`,
       method: 'get'
     }, callback)
   },
@@ -324,7 +324,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: '/certs',
+      url: '/now/certs',
       method: 'post',
       body: {
         domains: [cn]
@@ -344,7 +344,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: '/certs',
+      url: '/now/certs',
       method: 'post',
       body: {
         domains: [cn],
@@ -373,7 +373,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: '/certs',
+      url: '/now/certs',
       method: 'put',
       body: {
         domains: [cn],
@@ -396,7 +396,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/certs/${cn}`,
+      url: `/now/certs/${cn}`,
       method: 'delete'
     }, callback)
   },
@@ -442,7 +442,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/deployments/${id}/aliases`,
+      url: `/now/deployments/${id}/aliases`,
       method: 'post',
       body: {
         alias
@@ -463,7 +463,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/aliases/${id}`,
+      url: `/now/aliases/${id}`,
       method: 'delete'
     }, callback)
   },
@@ -477,7 +477,7 @@ Now.prototype = {
    */
   getSecrets(callback) {
     return this.handleRequest({
-      url: '/secrets',
+      url: '/now/secrets',
       method: 'get'
     }, callback, 'secrets')
   },
@@ -500,7 +500,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: '/secrets',
+      url: '/now/secrets',
       method: 'post',
       body: {
         name,
@@ -527,7 +527,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/secrets/${id}`,
+      url: `/now/secrets/${id}`,
       method: 'patch',
       body: {
         name
@@ -548,7 +548,7 @@ Now.prototype = {
     }
 
     return this.handleRequest({
-      url: `/secrets/${id}`,
+      url: `/now/secrets/${id}`,
       method: 'delete'
     }, callback)
   }
