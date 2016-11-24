@@ -339,13 +339,13 @@ Now.prototype = {
    * @see https://zeit.co/api#user-aliases
    */
   getCertificates(cn, callback) {
-    let url = '/certs'
+    let url = '/now/certs'
     let _callback = callback /* eslint no-underscore-dangle: 0 */
 
     if (typeof cn === 'function') {
       _callback = cn
     } else if (typeof cn === 'string') {
-      url = `/certs/${cn}`
+      url = `/now/certs/${cn}`
     }
 
     return this.handleRequest({
@@ -451,13 +451,13 @@ Now.prototype = {
    * @see https://zeit.co/api#user-aliases
    */
   getAliases(id, callback) {
-    let url = '/aliases'
+    let url = '/now/aliases'
     let _callback = callback /* eslint no-underscore-dangle: 0 */
 
     if (typeof id === 'function') {
       _callback = id
     } else if (typeof id === 'string') {
-      url = `/deployments/${id}/aliases`
+      url = `/now/deployments/${id}/aliases`
     }
 
     return this.handleRequest({
