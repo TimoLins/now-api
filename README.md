@@ -202,8 +202,46 @@ Deletes a domain name.
 | name | <code>String</code> | Domain name |
 | [callback] | <code>function</code> | Callback will be called with `(err)` |
 
+<a name="Now+getDomainRecords"></a>
+
+## now.getDomainRecords(domain, [callback])] ⇒ <code>Promise</code>
+Returns an array with all DNS records configured for a domain name.
+
+**Kind**: instance method of <code>[Now](#Now)</code>
+**See**: https://zeit.co/api#get-domain-records
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>String</code> | Domain name |
+| [callback] | <code>function</code> | Callback will be called with `(err, domains)` |
+
+## now.addDomainRecord(domain, recordData, [callback])] ⇒ <code>Promise</code>
+Adds a new DNS record for a domain.
+
+**Kind**: instance method of <code>[Now](#Now)</code>
+**See**: https://zeit.co/api#post-domain-records
+
+| Param | Type | Description |
+| --- | --- | --- |
+| domain | <code>object</code> | An object containing a string `name` and a boolean `isExternalDNS` |
+| recordData | <code>object</code> | An object containing a description of the new record according to the [documentation](https://zeit.co/api#post-domain-records). |
+| [callback] | <code>function</code> | Callback will be called with `(err)` |
+
+<a name="Now+deleteDomainRecord"></a>
+
+## now.deleteDomainRecord(name, recordId, [callback])] ⇒ <code>Promise</code>
+Deletes a DNS record associated with a domain.
+
+**Kind**: instance method of <code>[Now](#Now)</code>
+**See**: https://zeit.co/api#delete-domain-records
+
+| Param | Type | Description |
+| --- | --- | --- |
+| domain | <code>String</code> | Domain name |
+| recordId | <code>String</code> | Record ID |
+| [callback] | <code>function</code> | Callback will be called with `(err)` |
+
 <a name="Now+getCertificates"></a>
-Returns an array of all certificates.
 
 ## now.getCertificates([cn], [callback])] ⇒ <code>Promise</code>
 Returns an array of all certificates.
