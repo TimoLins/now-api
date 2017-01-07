@@ -40,7 +40,6 @@ console.log(deployments)
 const nowClient = require('now-client')
 const now = nowClient('YOUR TOKEN')
 
-// Supports Promises
 now.getDeployments().then(deployments => {
   console.log(deployments)
 }).catch(err => {
@@ -268,7 +267,7 @@ Creates a new certificate for a domain registered to the user.
 | [callback] | <code>function</code> | Callback will be called with `(err)` |
 
 <a name="Now+renewCertificate"></a>
- 
+
 ## now.renewCertificate(cn, [callback])] ⇒ <code>Promise</code>
 Renews an existing certificate.
 
@@ -279,7 +278,7 @@ Renews an existing certificate.
 | --- | --- | --- |
 | cn | <code>String</code> | Common Name |
 | [callback] | <code>function</code> | Callback will be called with `(err)` |
- 
+
 <a name="Now+replaceCertificate"></a>
 
 ## now.replaceCertificate(cn, cert, key, [ca], [callback])] ⇒ <code>Promise</code>
