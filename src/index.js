@@ -70,26 +70,27 @@ class Now {
       }
     })
   }
-  handleRequest(config, selector) {
-    return new Promise((resolve, reject) => {
-      this.request(config)
-        .then(res => {
-          const data = selector ? res[selector] : res
-          resolve(data)
-        })
-        .catch(err => {
-          let errData
-          if (err.data && err.data.err) {
-            errData = err.data.err
-          } else if (err.data) {
-            errData = err.data
-          } else {
-            errData = err.toString()
-          }
-          reject(errData)
-        })
-    })
+
+  async handleRequest(config, selector) {
+    let res
+    try {
+      res = await this.request(config)
+    } catch (err) {
+      let errData
+      if (err.data && err.data.err) {
+        errData = err.data.err
+      } else if (err.data) {
+        errData = err.data
+      } else {
+        errData = err.toString()
+      }
+      throw errData
+    }
+
+    const data = selector ? res[selector] : res
+    return data
   }
+
   getDeployments() {
     return this.handleRequest({
       url: '/now/deployments',
