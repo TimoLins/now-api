@@ -201,7 +201,7 @@ class Now {
     return this.handleRequest({
       url: `/domains/${domain}/records`,
       method: 'post',
-      data: recordData
+      body: recordData
     })
   }
 
