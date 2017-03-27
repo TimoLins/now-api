@@ -222,7 +222,7 @@ Adds a new DNS record for a domain.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| domain | <code>object</code> | An object containing a string `name` and a boolean `isExternalDNS` |
+| domain | <code>String</code> | Domain name |
 | recordData | <code>object</code> | An object containing a description of the new record according to the [documentation](https://zeit.co/api#post-domain-records). |
 | [callback] | <code>function</code> | Callback will be called with `(err)` |
 
