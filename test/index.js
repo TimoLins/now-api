@@ -1,7 +1,7 @@
 import chai from 'chai'
 import {describe} from 'ava-spec'
 import test from 'ava'
-import Now from '../dist'
+import Now from '../dist/node'
 
 const should = chai.should()
 const TOKEN = process.env.TEST_NOW_TOKEN
