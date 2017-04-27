@@ -1,7 +1,5 @@
-const path = require('path')
-const os = require('os')
-
-const request = require('request-promise-native')
+const request = require('custom-webpack-alias-requestLib') // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+const getToken = require('custom-webpack-alias-getToken') // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 const ERROR = {
   MISSING_ID: {
@@ -34,25 +32,10 @@ const ERROR = {
   }
 }
 
-function _getToken() {
-  let token = process.env.NOW_TOKEN
-
-  if (!token) {
-    try {
-      const configPath = path.join(os.homedir(), '.now.json')
-      token = require(configPath).token // eslint-disable-line global-require, import/no-dynamic-require
-    } catch (err) {
-      console.error(`Error: ${err}`)
-    }
-  }
-
-  return token
-}
-
 const handleError = err => new Promise((resolve, reject) => reject(err))
 
 class Now {
-  constructor(token = _getToken()) {
+  constructor(token = getToken()) {
     if (!token) {
       console.error(
         'No token found! ' +

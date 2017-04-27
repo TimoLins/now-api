@@ -23,7 +23,7 @@ const nodeConfig = {
     modules: ['node_modules', path.resolve('./src')],
     alias: {
       'custom-webpack-alias-requestLib': 'request-promise-native',
-      'custom-webpack-alias-getToken': 'node/get-token'
+      'custom-webpack-alias-getToken': 'platforms/node/get-token'
     }
   },
   externals: [nodeExternals()]
@@ -59,7 +59,7 @@ const srcConfig = {
     modules: ['node_modules', path.resolve('./src')],
     alias: {
       'custom-webpack-alias-requestLib': 'browser-request',
-      'custom-webpack-alias-getToken': 'browser/get-token'
+      'custom-webpack-alias-getToken': 'platforms/browser/get-token'
     }
   }
 }
