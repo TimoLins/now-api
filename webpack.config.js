@@ -35,7 +35,9 @@ const srcConfig = {
   ],
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'browser.js'
+    filename: 'browser.js',
+    library: 'nowClient',
+    libraryTarget: 'umd'
   },
   module: {
     rules: [
