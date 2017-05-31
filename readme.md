@@ -24,7 +24,7 @@ const nowClient = require('now-client')
 Then initialize it using your token:
 
 ```js
-const now = nowClient('YOUR TOKEN')
+const now = new nowClient('YOUR TOKEN')
 ```
 
 And finally, you can use its methods to retrieve data:
