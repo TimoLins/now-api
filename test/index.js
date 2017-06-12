@@ -6,6 +6,8 @@ import Now from '../lib'
 const should = chai.should()
 const TOKEN = process.env.TEST_NOW_TOKEN
 
+console.log(process.env)
+
 if (!TOKEN) {
   throw new Error('now token not provided')
 }
