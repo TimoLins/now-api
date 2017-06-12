@@ -21,17 +21,15 @@ if (!TOKEN) {
 
 const now = new Now(TOKEN)
 
-const createDeployment = () => {
-  return now.createDeployment({
-    package: {
-      name: 'test-deployment',
-      scripts: {
-        start: 'node index'
-      }
-    },
-    'index.js': 'console.log("Unit Test!")'
-  })
-}
+const createDeployment = () => now.createDeployment({
+  package: {
+    name: 'test-deployment',
+    scripts: {
+      start: 'node index'
+    }
+  },
+  'index.js': 'console.log("Unit Test!")'
+})
 
 let deployData
 let instanceId

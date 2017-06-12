@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "xo && ava --timeout=30s",
-    "precommit": "xo --quiet && lint-staged"
+    "precommit": "xo --quiet && lint-staged",
+    "travis": "travis-conditions"
   },
   "files": [
     "lib"
