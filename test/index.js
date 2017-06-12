@@ -8,7 +8,8 @@ const should = chai.should()
 const TOKEN = process.env.TEST_NOW_TOKEN
 const secureEnv = process.env.TRAVIS_SECURE_ENV_VARS
 
-if (secureEnv === 'false') {
+if (secureEnv && secureEnv === 'false') {
+  // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0)
 }
 
