@@ -4,7 +4,13 @@ import test from 'ava'
 import Now from '../lib'
 
 const should = chai.should()
+
 const TOKEN = process.env.TEST_NOW_TOKEN
+const secureEnv = process.env.TRAVIS_SECURE_ENV_VARS
+
+if (secureEnv === 'false') {
+  process.exit(0)
+}
 
 if (!TOKEN) {
   throw new Error('now token not provided')
