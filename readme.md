@@ -21,7 +21,7 @@ const NowClient = require('now-client')
 
 Then initialize it:
 
-- `<token>` holds your token, which can obtained [here](https://zeit.co/account#api-tokens) (optional, will read from `~/.now/auth.json` if not defined - you can also define it using the `NOW_TOKEN` environment variable)
+- `<token>` holds your token, which can obtained [here](https://zeit.co/account/tokens) (optional, will read from `~/.now/auth.json` if not defined - you can also define it using the `NOW_TOKEN` environment variable)
 - `<team>` specifies the ID of the team to which the actions should apply (optional)
 
 ```js
