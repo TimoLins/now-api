@@ -1,5 +1,4 @@
-# dependencies
+lib
+*.html
 node_modules
-
-# log
-npm-debug.log
+*.log
