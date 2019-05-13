@@ -181,7 +181,7 @@ export default class Deployment {
     this.preparedFiles = []
 
     if (token && typeof token !== 'string') {
-      throw new DeploymentError('Token must be a string')
+      throw new DeploymentError({ code: 'invalid_token', message: 'Token must be a string' })
     }
 
     this[_] = {
@@ -217,7 +217,7 @@ export default class Deployment {
   // Set the token
   authenticate = (token) => {
     if (typeof token !== 'string') {
-      throw new DeploymentError('Token must be a string')
+      throw new DeploymentError({ code: 'invalid_token', message: 'Token must be a string' })
     }
 
     this[_].token = token
@@ -226,10 +226,10 @@ export default class Deployment {
   // Main deployment method
   deploy = async () => {
     if (!this[_].token) {
-      throw new DeploymentError('Token not provided. Make sure you run `authenticate()` method or provide the token to the class constructor')
+      throw new DeploymentError({ code: 'no_token', message: 'Token not provided. Make sure you run `authenticate()` method or provide the token to the class constructor' })
     }
     if (!this.files || !this.files.length || this.files.length === 0) {
-      throw new DeploymentError('No files were provided')
+      throw new DeploymentError({ code: 'no_files', message: 'No files were provided' })
     }
 
     try {
@@ -239,7 +239,7 @@ export default class Deployment {
       const finalMetadata = { ...metadata, ...this.metadata }
 
       if (finalMetadata.version !== 2) {
-        throw new DeploymentError('Only Now v2 deployments are supported. Specify `version: 2` in your now.json and try again')
+        throw new DeploymentError({ code: 'unsupported_version', message: 'Only Now v2 deployments are supported. Specify `version: 2` in your now.json and try again' })
       }
 
       await upload(files, this[_].token)
@@ -247,7 +247,7 @@ export default class Deployment {
       
       if (error) {
         // A deployment error occurred
-        throw new DeploymentError(error.message)
+        throw new DeploymentError(error)
       }
 
       this.fireListeners('created', deployment)
@@ -265,7 +265,7 @@ export default class Deployment {
       
       return deployment
     } catch (e) {
-      throw new DeploymentError(e)
+      throw new DeploymentError({ code: 'unexpected_error', message: e.toString() })
     }
   }
 
