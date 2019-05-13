@@ -37,6 +37,16 @@ function readFile(file) {
   })
 }
 
+function getFileName(file) {
+  if (!file.webkitRelativePath || file.webkitRelativePath.length === 0) {
+    return file.name
+  }
+  
+  const [, ...path] = file.webkitRelativePath.split('/')
+
+  return path.join('/')
+}
+
 /**
  * Prepare files for upload, calculate SHA, get metadata from now.json
  *
@@ -62,6 +72,7 @@ function prepareFiles(files) {
   
         prepFiles.push({
           ...file,
+          name: getFileName(file),
           sha
         })
       })
