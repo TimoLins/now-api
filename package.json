@@ -7,7 +7,9 @@
     "dev": "run-p watch serve",
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "serve": "serve"
+    "serve": "serve",
+    "lint": "eslint --fix src/**/*.js",
+    "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.js' | xargs eslint --fix"
   },
   "dependencies": {
     "js-sha1": "^0.6.0"
@@ -16,6 +18,9 @@
     "@babel/core": "^7.4.4",
     "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
+    "@zeit/git-hooks": "^0.1.4",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
     "npm-run-all": "^4.1.5",
     "rollup": "^1.11.3",
     "rollup-plugin-babel": "^4.3.2",
@@ -24,5 +29,19 @@
     "rollup-plugin-filesize": "^6.0.1",
     "rollup-plugin-node-resolve": "^4.2.3",
     "serve": "^11.0.0"
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "env": {
+      "es6": true,
+      "browser": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "semi": ["error", "never"]
+    }
+  },
+  "git": {
+    "pre-commit": "lint-staged"
   }
 }

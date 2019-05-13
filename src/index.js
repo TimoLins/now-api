@@ -26,7 +26,7 @@ function readFile(file) {
       resolve({
         name: file.name,
         data: e.target.result,
-      });
+      })
     }
   
     if (file.name === 'now.json') {
@@ -36,7 +36,6 @@ function readFile(file) {
     }
   })
 }
-
 
 /**
  * Prepare files for upload, calculate SHA, get metadata from now.json
@@ -48,13 +47,13 @@ function prepareFiles(files) {
   return new Promise(async (resolve, reject) => {
     try {
       const promises = []
-  
+
       for (let i = 0; i < files.length; i++) {
         const file = files.item(i)
-        
+
         promises.push(readFile(file))
       }
-  
+
       const loadedFiles = await Promise.all(promises)
       const prepFiles = []
       
@@ -92,8 +91,8 @@ function upload(files, token) {
   return Promise.all(files.map(async file => {
     const stream = new ReadableStream({
       start(controller) {
-        controller.enqueue(file.data);
-        controller.close();
+        controller.enqueue(file.data)
+        controller.close()
       }
     })
 
