@@ -6,7 +6,8 @@ const ALLOWED_EVENTS = new Set([
   'deployment-state-changed',
   'build-state-changed',
   'created',
-  'ready'
+  'ready',
+  'error'
 ])
 
 const API = 'https://api.zeit.co/v8/now/deployments'
@@ -181,7 +182,10 @@ export default class Deployment {
     this.preparedFiles = []
 
     if (token && typeof token !== 'string') {
-      throw new DeploymentError({ code: 'invalid_token', message: 'Token must be a string' })
+      const err = { code: 'invalid_token', message: 'Token must be a string' }
+      this.fireListeners('error', err)
+
+      throw new DeploymentError(err)
     }
 
     this[_] = {
@@ -217,7 +221,10 @@ export default class Deployment {
   // Set the token
   authenticate = (token) => {
     if (typeof token !== 'string') {
-      throw new DeploymentError({ code: 'invalid_token', message: 'Token must be a string' })
+      const err = { code: 'invalid_token', message: 'Token must be a string' }
+      this.fireListeners('error', err)
+
+      throw new DeploymentError(err)
     }
 
     this[_].token = token
@@ -226,10 +233,16 @@ export default class Deployment {
   // Main deployment method
   deploy = async () => {
     if (!this[_].token) {
-      throw new DeploymentError({ code: 'no_token', message: 'Token not provided. Make sure you run `authenticate()` method or provide the token to the class constructor' })
+      const err = { code: 'no_token', message: 'Token not provided. Make sure you run `authenticate()` method or provide the token to the class constructor' }
+      this.fireListeners('error', err)
+
+      throw new DeploymentError(err)  
     }
     if (!this.files || !this.files.length || this.files.length === 0) {
-      throw new DeploymentError({ code: 'no_files', message: 'No files were provided' })
+      const err = { code: 'no_files', message: 'No files were provided' }
+      this.fireListeners('error', err)
+
+      throw new DeploymentError(err)
     }
 
     try {
@@ -239,7 +252,10 @@ export default class Deployment {
       const finalMetadata = { ...metadata, ...this.metadata }
 
       if (finalMetadata.version !== 2) {
-        throw new DeploymentError({ code: 'unsupported_version', message: 'Only Now v2 deployments are supported. Specify `version: 2` in your now.json and try again' })
+        const err = { code: 'unsupported_version', message: 'Only Now v2 deployments are supported. Specify `version: 2` in your now.json and try again' }
+        this.fireListeners('error', err)
+
+        throw new DeploymentError(err)
       }
 
       await upload(files, this[_].token)
@@ -247,6 +263,8 @@ export default class Deployment {
       
       if (error) {
         // A deployment error occurred
+        this.fireListeners('error', error)
+
         throw new DeploymentError(error)
       }
 
@@ -265,7 +283,10 @@ export default class Deployment {
       
       return deployment
     } catch (e) {
-      throw new DeploymentError({ code: 'unexpected_error', message: e.toString() })
+      const err = { code: 'unexpected_error', message: e.toString() }
+      this.fireListeners(err)
+
+      throw new DeploymentError(err)
     }
   }
 
@@ -336,7 +357,7 @@ export default class Deployment {
 
 class DeploymentError extends Error {
   constructor(message) {
-    super(message)
+    super(JSON.stringify(message))
     this.name = 'DeploymentError'
   }
 }
