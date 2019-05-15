@@ -284,9 +284,7 @@ export default class Deployment {
       return deployment
     } catch (e) {
       const err = { code: 'unexpected_error', message: e.toString() }
-      this.fireListeners(err)
-
-      throw new DeploymentError(err)
+      this.fireListeners('error', err)
     }
   }
 
@@ -321,7 +319,7 @@ export default class Deployment {
     builds.forEach(build => {
       const prevState = this.builds[build.id]
       
-      if (!prevState || prevState.state !== build.state) {
+      if (!prevState || prevState.readyState !== build.readyState) {
         this.fireListeners('build-state-changed', build)
       }
 
@@ -356,8 +354,9 @@ export default class Deployment {
 }
 
 class DeploymentError extends Error {
-  constructor(message) {
-    super(JSON.stringify(message))
+  constructor(err) {
+    super(err.message)
+    this.code = err.code
     this.name = 'DeploymentError'
   }
 }
