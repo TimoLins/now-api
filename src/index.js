@@ -251,8 +251,14 @@ export default class Deployment {
       // Merge now.json metadata and provided metadata if any
       const finalMetadata = { ...metadata, ...this.metadata }
 
+      if (Object.keys(finalMetadata).length === 0) {
+        finalMetadata.builds = [{ src: "**", use: "@now/static" }]
+        finalMetadata.version = 2
+        finalMetadata.name = files[0].name
+      }
+
       if (finalMetadata.version !== 2) {
-        const err = { code: 'unsupported_version', message: 'Only Now v2 deployments are supported. Specify `version: 2` in your now.json and try again' }
+        const err = { code: 'unsupported_version', message: 'Only Now 2.0 deployments are supported. Specify `version: 2` in your now.json and try again' }
         this.fireListeners('error', err)
 
         throw new DeploymentError(err)
