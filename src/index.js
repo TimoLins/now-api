@@ -251,7 +251,7 @@ export default class Deployment {
       // Merge now.json metadata and provided metadata if any
       const finalMetadata = { ...metadata, ...this.metadata }
 
-      if (Object.keys(finalMetadata).length === 0) {
+      if (!finalMetadata.builds && !finalMetadata.version && !finalMetadata.name) {
         finalMetadata.builds = [{ src: "**", use: "@now/static" }]
         finalMetadata.version = 2
         finalMetadata.name = files[0].name
