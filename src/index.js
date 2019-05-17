@@ -285,7 +285,7 @@ export default class Deployment {
 
       // Set up polling to watch for status changes
       this.deployment = deployment
-      this.poll = setTimeout(() => this.checkDeploymentStatus(), 3000)
+      this.poll = setTimeout(() => this.checkDeploymentStatus(finalMetadata.teamId), 3000)
       
       return deployment
     } catch (e) {
@@ -296,9 +296,8 @@ export default class Deployment {
 
   builds = {}
 
-  checkDeploymentStatus = async () => {
+  checkDeploymentStatus = async (teamId) => {
     const { token } = this[_]
-    const teamId = this.deployment.team ? this.deployment.team.id : null
 
     // Get fresh states of the deployment and builds
     const [deploymentData, buildsData] = await Promise.all([
