@@ -315,7 +315,7 @@ export default class Deployment {
       }),
     ])
 
-    const [deploymentUpdate, { builds }] = await Promise.all([
+    const [deploymentUpdate, { builds = [] }] = await Promise.all([
       deploymentData.json(),
       buildsData.json()
     ])
