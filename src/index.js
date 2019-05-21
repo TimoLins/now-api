@@ -101,13 +101,6 @@ function prepareFiles(files) {
  */
 function upload(files, token) {
   return Promise.all(files.map(async file => {
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(file.data)
-        controller.close()
-      }
-    })
-
     const res = await fetch('https://api.zeit.co/v2/now/files', {
       method: 'POST',
       headers: {
@@ -115,7 +108,7 @@ function upload(files, token) {
         'Content-Length': file.data.length,
         'x-now-digest': file.sha,
       },
-      body: stream
+      body: file.data
     })
 
     return res.json()
@@ -254,7 +247,7 @@ export default class Deployment {
       if (!finalMetadata.builds && !finalMetadata.version && !finalMetadata.name) {
         finalMetadata.builds = [{ src: "**", use: "@now/static" }]
         finalMetadata.version = 2
-        finalMetadata.name = files[0].name
+        finalMetadata.name = files.length === 1 ? 'file' : files[0].name
       }
 
       if (finalMetadata.version !== 2) {
