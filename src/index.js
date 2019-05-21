@@ -1,10 +1,11 @@
-import sha1 from 'js-sha1'
+import uploadFile from './upload'
 
 const _ = Symbol('Deployment')
 
 const ALLOWED_EVENTS = new Set([
   'deployment-state-changed',
   'build-state-changed',
+  'default-to-static',
   'created',
   'ready',
   'error'
@@ -12,109 +13,50 @@ const ALLOWED_EVENTS = new Set([
 
 const API = 'https://api.zeit.co/v8/now/deployments'
 
-/**
- * Read file contents and return a promise
- *
- * @param {Blob} file - file to read
- * @returns {Promise}
- */
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-  
-    reader.onerror = reject
-    reader.onload = (e) => {
-      resolve({
-        name: file.name,
-        data: e.target.result,
-      })
-    }
-  
-    if (file.name === 'now.json') {
-      reader.readAsText(file)
-    } else {
-      reader.readAsArrayBuffer(file)
-    }
-  })
-}
+function parseNowJSON(data) {
+  try {
+    const jsonString = String.fromCharCode.apply(null, new Uint8Array(data))
 
-function getFileName(file) {
-  if (!file.webkitRelativePath || file.webkitRelativePath.length === 0) {
-    return file.name
+    return JSON.parse(jsonString)
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(e)
+
+    return {}
   }
-  
-  const [, ...path] = file.webkitRelativePath.split('/')
-
-  return path.join('/')
 }
 
 /**
- * Prepare files for upload, calculate SHA, get metadata from now.json
+ * Prepare and upload files, get metadata from now.json
  *
- * @param {*} files
+ * @param {FileList} files - FileList object from input or drop event 
+ * @param {string} token - ZEIT API token
  * @returns {Promise}
  */
-function prepareFiles(files) {
+function prepare(files, token) {
   return new Promise(async (resolve, reject) => {
     try {
       const promises = []
 
       for (let i = 0; i < files.length; i++) {
-        const file = files.item(i)
-
-        promises.push(readFile(file))
+        promises.push(uploadFile(files.item(i), token))
       }
 
-      const loadedFiles = await Promise.all(promises)
-      const prepFiles = []
-      
-      loadedFiles.forEach(file => {
-        const sha = sha1(file.data)
+      const uploadedFiles = await Promise.all(promises)
   
-        prepFiles.push({
-          ...file,
-          name: getFileName(file),
-          sha
-        })
-      })
-  
-      let nowJson = prepFiles.find(({ name }) => name === 'now.json')
+      let nowJson = uploadedFiles.find(({ name }) => name === 'now.json')
       let metadata = {}
       
       if (nowJson) {
-        metadata = JSON.parse(nowJson.data)
+        metadata = parseNowJSON(nowJson.data)
       }
   
-      resolve([prepFiles, metadata])
+      resolve([uploadedFiles, metadata])
     } catch (e) {
       reject(e)
     }
   })
 } 
-
-/**
- * Upload prepared files to Now
- *
- * @param {*} files - Prepared files
- * @param {string} token - ZEIT API token
- * @returns
- */
-function upload(files, token) {
-  return Promise.all(files.map(async file => {
-    const res = await fetch('https://api.zeit.co/v2/now/files', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Length': file.data.length,
-        'x-now-digest': file.sha,
-      },
-      body: file.data
-    })
-
-    return res.json()
-  }))
-}
-
 
 /**
  * Create a deployment with prepared and uploaded files
@@ -138,8 +80,8 @@ async function createDeployment(files, token, metadata_) {
       ...metadata,
       files: files.map(file => ({
         file: file.name,
-        sha: file.sha,
-        size: file.data.length || file.data.byteLength
+        sha: file.sha1,
+        size: file.length
       }))
     })
   })
@@ -239,7 +181,7 @@ export default class Deployment {
     }
 
     try {
-      const [files, metadata] = await prepareFiles(this.files)
+      const [files, metadata] = await prepare(this.files, this[_].token)
 
       // Merge now.json metadata and provided metadata if any
       const finalMetadata = { ...metadata, ...this.metadata }
@@ -248,6 +190,8 @@ export default class Deployment {
         finalMetadata.builds = [{ src: "**", use: "@now/static" }]
         finalMetadata.version = 2
         finalMetadata.name = files.length === 1 ? 'file' : files[0].name
+        
+        this.fireListeners('default-to-static', finalMetadata)
       }
 
       if (finalMetadata.version !== 2) {
@@ -257,7 +201,7 @@ export default class Deployment {
         throw new DeploymentError(err)
       }
 
-      await upload(files, this[_].token)
+      // await upload(files, this[_].token)
       const { deployment, error } = await createDeployment(files, this[_].token, finalMetadata)
       
       if (error) {

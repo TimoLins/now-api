@@ -13,7 +13,7 @@
     "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.js' | xargs eslint --fix"
   },
   "dependencies": {
-    "js-sha1": "^0.6.0"
+    "crypto-js": "^3.1.9-1"
   },
   "devDependencies": {
     "@babel/core": "^7.4.4",
