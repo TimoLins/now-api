@@ -36,10 +36,13 @@ function parseNowJSON(data) {
 function prepare(files, token) {
   return new Promise(async (resolve, reject) => {
     try {
-      const promises = []
+      const isArray = Array.isArray(files)
+      const promises = isArray ? files.map(file => uploadFile(file, token)) : []
 
-      for (let i = 0; i < files.length; i++) {
-        promises.push(uploadFile(files.item(i), token))
+      if (!isArray) {
+        for (let i = 0; i < files.length; i++) {
+          promises.push(uploadFile(files.item(i), token))
+        }
       }
 
       const uploadedFiles = await Promise.all(promises)
