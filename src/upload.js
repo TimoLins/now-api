@@ -9,6 +9,10 @@ import { readAsStream, concatArrayBuffers } from './stream-tools'
  * @returns
  */
 function getFileName(file) {
+  if (file.fullPath) {
+    return file.fullPath
+  }
+
   if (!file.webkitRelativePath || file.webkitRelativePath.length === 0) {
     return file.name
   }
