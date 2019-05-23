@@ -1,4 +1,5 @@
 import uploadFile from './upload'
+import { parseNowJSON, getNowIgnore } from './now-tools'
 
 const _ = Symbol('Deployment')
 
@@ -13,35 +14,25 @@ const ALLOWED_EVENTS = new Set([
 
 const API = 'https://api.zeit.co/v8/now/deployments'
 
-function parseNowJSON(data) {
-  try {
-    const jsonString = String.fromCharCode.apply(null, new Uint8Array(data))
-
-    return JSON.parse(jsonString)
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error(e)
-
-    return {}
-  }
-}
-
 /**
  * Prepare and upload files, get metadata from now.json
  *
- * @param {FileList} files - FileList object from input or drop event 
+ * @param {FileList|File[]} files - FileList object from input or drop event 
  * @param {string} token - ZEIT API token
  * @returns {Promise}
  */
 function prepare(files, token) {
   return new Promise(async (resolve, reject) => {
     try {
+      const nowIgnore = await getNowIgnore(files)
       const isArray = Array.isArray(files)
-      const promises = isArray ? files.map(file => uploadFile(file, token)) : []
+      const promises = isArray ? files.filter(file => !nowIgnore.ignores(file.name)).map(file => uploadFile(file, token)) : []
 
       if (!isArray) {
         for (let i = 0; i < files.length; i++) {
-          promises.push(uploadFile(files.item(i), token))
+          if (!nowIgnore.ignores(files.item(i).name)) {
+            promises.push(uploadFile(files.item(i), token))
+          }
         }
       }
 
@@ -291,7 +282,7 @@ export default class Deployment {
 
   fireListeners = (event, data) => {
     this[_].listeners.forEach(listener => {
-      if (listener.event === event) {
+      if (listener.event === event || listener.event === '*') {
         listener.handler(data)
       }
     })
