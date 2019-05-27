@@ -39,5 +39,7 @@ export async function getNowIgnore(files) {
     }
   }
 
-  return () => false
+  return {
+    ignores: () => false
+  }
 }
