@@ -31,7 +31,7 @@ function getFileName(file) {
  * @param {string} token - ZEIT API token
  * @returns
  */
-export default function uploadFile(file, token) {
+export default function uploadFile(file, token, onFileUploaded) {
   return new Promise((resolve, reject) => {
     const stream = readAsStream(file)
     const reader = stream.getReader()
@@ -67,6 +67,10 @@ export default function uploadFile(file, token) {
           
           if (error) {
             return reject(error)
+          }
+
+          if (typeof onFileUploaded === 'function') {
+            onFileUploaded(file)
           }
 
           return resolve({

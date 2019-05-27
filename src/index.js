@@ -7,6 +7,8 @@ const ALLOWED_EVENTS = new Set([
   'deployment-state-changed',
   'build-state-changed',
   'default-to-static',
+  'file-uploaded',
+  'all-files-uploaded',
   'created',
   'ready',
   'error'
@@ -21,12 +23,15 @@ const API = 'https://api.zeit.co/v8/now/deployments'
  * @param {string} token - ZEIT API token
  * @returns {Promise}
  */
-function prepare(files, token) {
+function prepare(files, token, onFileUploaded) {
   return new Promise(async (resolve, reject) => {
     try {
       const nowIgnore = await getNowIgnore(files)
       const isArray = Array.isArray(files)
-      const promises = isArray ? files.filter(file => !nowIgnore.ignores(file.name)).map(file => uploadFile(file, token)) : []
+      const promises = isArray ? files
+        .filter(file => !nowIgnore.ignores(file.name))
+        .filter(file => !file.name.includes('node_modules'))
+        .map(file => uploadFile(file, token, onFileUploaded)) : []
 
       if (!isArray) {
         for (let i = 0; i < files.length; i++) {
@@ -175,7 +180,11 @@ export default class Deployment {
     }
 
     try {
-      const [files, metadata] = await prepare(this.files, this[_].token)
+      const [files, metadata] = await prepare(this.files, this[_].token, f => {
+        this.fireListeners('file-uploaded', f)
+      })
+
+      this.fireListeners('all-files-uploaded', files)
 
       // Merge now.json metadata and provided metadata if any
       const finalMetadata = { ...metadata, ...this.metadata }
