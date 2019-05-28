@@ -111,7 +111,9 @@ export default class Deployment {
    * @memberof Deployment
    */
   constructor(files, token = null, metadata = {}) {
-    this.metadata = metadata
+    const { defaultName, ...metadata_ } = metadata
+    this.metadata = metadata_
+    this.defaultName = defaultName
     this.files = files
     this.preparedFiles = []
 
@@ -195,6 +197,10 @@ export default class Deployment {
         finalMetadata.name = files.length === 1 ? 'file' : files[0].name
         
         this.fireListeners('default-to-static', finalMetadata)
+      }
+
+      if (!finalMetadata.name) {
+        finalMetadata.name = this.defaultName || files[0].name
       }
 
       if (finalMetadata.version !== 2) {
