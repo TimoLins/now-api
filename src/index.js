@@ -286,7 +286,7 @@ export default class Deployment {
     }
 
     // Otherwise continue polling
-    setTimeout(this.checkDeploymentStatus, 3000)
+    setTimeout(() => this.checkDeploymentStatus(teamId), 3000)
   }
 
   fireListeners = (event, data) => {
