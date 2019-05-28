@@ -1,5 +1,5 @@
 import crypto from 'crypto-js'
-import { readAsStream, concatArrayBuffers } from './stream-tools'
+import { readFile, concatArrayBuffers } from './stream-tools'
 
 
 /**
@@ -33,62 +33,106 @@ function getFileName(file) {
  */
 export default function uploadFile(file, token, onFileUploaded) {
   return new Promise((resolve, reject) => {
-    const stream = readAsStream(file)
-    const reader = stream.getReader()
+    const streamOrFile = readFile(file)
 
-    // Prepare
-    let streamResult = new Uint8Array()
-    const sha = crypto.algo.SHA1.create()
+    // If it's a stream
+    if (streamOrFile.getReader) {
+      const reader = streamOrFile.getReader()
   
-    // Start reading data from the stream
-    reader.read().then(function processStream({ done, value }) {
-      // If the stream is over, calculate SHA1 and upload the file
-      if (done) {
-        reader.releaseLock() // Release lock so `fetch` can read the stream
-
-        const length = streamResult.byteLength
+      // Prepare
+      let streamResult = new Uint8Array()
+      const sha = crypto.algo.SHA1.create()
+    
+      // Start reading data from the stream
+      reader.read().then(function processStream({ done, value }) {
+        // If the stream is over, calculate SHA1 and upload the file
+        if (done) {
+          reader.releaseLock() // Release lock so `fetch` can read the stream
+  
+          const length = streamResult.byteLength
+          const sha1 = sha.finalize().toString()
+  
+          const req = new Request('https://api.zeit.co/v2/now/files', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/octet-stream',
+              'x-now-digest': sha1
+            }
+          })
+    
+          req.body = streamOrFile
+    
+          // Upload stream
+          fetch(req).then(async res => {
+            const { error } = await res.json()
+            
+            if (error) {
+              return reject(error)
+            }
+  
+            if (typeof onFileUploaded === 'function') {
+              onFileUploaded(file)
+            }
+  
+            return resolve({
+              length,
+              sha1,
+              name: getFileName(file),
+              data: streamResult
+            })
+          })
+          
+          return
+        }
+    
+        // If we're not done yet, update SHA1, append data to the result and continue reading
+        sha.update(crypto.lib.WordArray.create(value))
+        streamResult = concatArrayBuffers(streamResult, value)
+    
+        return reader.read().then(processStream)
+      })
+    } else {
+      // If it's a file
+      streamOrFile.then(e => {
+        const { result } = e.target
+        const sha = crypto.algo.SHA1.create()
+        
+        sha.update(crypto.lib.WordArray.create(result))
         const sha1 = sha.finalize().toString()
 
-        const req = new Request('https://api.zeit.co/v2/now/files', {
+        fetch('https://api.zeit.co/v2/now/files', {
           method: 'POST',
+          mode: 'cors',
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/octet-stream',
-            'Content-Length': length,
             'x-now-digest': sha1
-          }
-        })
+          },
+          body: result
+        }).then(async res => {
+            const { error } = await res.json()
+            
+            if (error) {
+              return reject(error)
+            }
   
-        req.body = stream
+            if (typeof onFileUploaded === 'function') {
+              onFileUploaded(result)
+            }
   
-        // Upload stream
-        fetch(req).then(async res => {
-          const { error } = await res.json()
-          
-          if (error) {
-            return reject(error)
-          }
-
-          if (typeof onFileUploaded === 'function') {
-            onFileUploaded(file)
-          }
-
-          return resolve({
-            length,
-            sha1,
-            name: getFileName(file),
-            data: streamResult
+            return resolve({
+              length,
+              sha1,
+              name: getFileName(file),
+              data: result
+            })
           })
+          
+          return
         })
-        
-        return
-      }
-  
-      // If we're not done yet, update SHA1, append data to the result and continue reading
-      sha.update(crypto.lib.WordArray.create(value))
-      streamResult = concatArrayBuffers(streamResult, value)
-  
-      return reader.read().then(processStream)
-    })
+    }
+
   })
 }

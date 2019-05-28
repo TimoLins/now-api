@@ -229,7 +229,7 @@ export default class Deployment {
       
       return deployment
     } catch (e) {
-      const err = { code: 'unexpected_error', message: e.toString() }
+      const err = { code: e.code || 'unexpected_error', message: e.message || e.toString() }
       this.fireListeners('error', err)
     }
   }

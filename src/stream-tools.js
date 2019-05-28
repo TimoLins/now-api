@@ -1,5 +1,17 @@
 const noop = () => {}
 
+const read = (file, binary) => new Promise(resolve => {
+  const reader = new FileReader()
+
+  reader.onload = resolve
+
+  if (binary) {
+    reader.readAsArrayBuffer(file)
+  } else {
+    reader.readAsText(file)
+  }
+})
+
 /**
  * Read file in chunks as a stream
  *
@@ -8,13 +20,17 @@ const noop = () => {}
  * @param {object} options - Read options
  * @returns {ReadableStream}
  */
-export function readAsStream(file, options = {}) {
+export function readFile(file, options = {}) {
   const {
     chunkSize = 1024,
     binary = true,
     onChunkError = noop,
     onSuccess = noop,
   } = options
+
+  if (file.size <= chunkSize) {
+    return read(file, binary)
+  }
 
   let offset = 0
 
