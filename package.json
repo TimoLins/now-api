@@ -3,50 +3,76 @@
   "version": "3.8.0",
   "main": "lib/index.js",
   "license": "MIT",
+  "author": "Max Rovensky <max@zeit.co>",
   "scripts": {
+    "build": "ncc build ./src/index.ts -o ./lib --source-map",
     "prepare": "npm run build",
-    "dev": "run-p watch serve",
-    "build": "rollup -c",
-    "watch": "rollup -c -w",
-    "serve": "serve",
-    "lint": "eslint --fix src/**/*.js",
-    "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.js' | xargs eslint --fix"
-  },
-  "dependencies": {
-    "crypto-js": "^3.1.9-1",
-    "ignore": "^5.1.1"
+    "test": "npm run build && npm run testonly",
+    "testonly": "jest -i --verbose",
+    "lint": "eslint --fix .ts,.js .",
+    "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.js' '*.jsx' | xargs eslint --fix"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
-    "@zeit/git-hooks": "^0.1.4",
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.16.0",
-    "npm-run-all": "^4.1.5",
-    "rollup": "^1.11.3",
-    "rollup-plugin-babel": "^4.3.2",
-    "rollup-plugin-babel-minify": "^8.0.0",
-    "rollup-plugin-commonjs": "^9.3.4",
-    "rollup-plugin-filesize": "^6.0.1",
-    "rollup-plugin-node-resolve": "^4.2.3",
-    "serve": "^11.0.0"
+    "@types/async-retry": "^1.4.1",
+    "@types/fs-extra": "^7.0.0",
+    "@types/node": "^12.0.3",
+    "@types/node-fetch": "^2.3.4",
+    "@types/recursive-readdir": "^2.2.0",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "@zeit/git-hooks": "0.1.4",
+    "@zeit/ncc": "^0.18.5",
+    "eslint": "5.16.0",
+    "jest": "^24.8.0",
+    "typescript": "^3.5.1"
   },
   "eslintConfig": {
-    "parser": "babel-eslint",
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
     "env": {
       "es6": true,
-      "browser": true
+      "node": true,
+      "jest": true
     },
-    "extends": "eslint:recommended",
     "rules": {
-      "semi": [
+      "func-names": [
         "error",
-        "never"
-      ]
+        "as-needed"
+      ],
+      "no-shadow": "error",
+      "no-extra-semi": 0,
+      "react/prop-types": 0,
+      "react/react-in-jsx-scope": 0,
+      "react/no-unescaped-entities": 0,
+      "react/jsx-no-target-blank": 0,
+      "react/no-string-refs": 0,
+      "@typescript-eslint/indent": [
+        "error",
+        2
+      ],
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/explicit-member-accessibility": "off"
     }
   },
   "git": {
     "pre-commit": "lint-staged"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@zeit/fetch": "^5.1.0",
+    "async-retry": "^1.2.3",
+    "fetch-h2": "^2.2.0",
+    "fs-extra": "^8.0.1",
+    "node-fetch": "^2.6.0",
+    "querystring": "^0.2.0",
+    "recursive-readdir": "^2.2.2"
   }
 }
