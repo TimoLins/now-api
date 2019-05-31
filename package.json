@@ -13,18 +13,18 @@
     "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.ts' | xargs eslint --fix"
   },
   "devDependencies": {
-    "@types/async-retry": "^1.4.1",
-    "@types/fs-extra": "^7.0.0",
-    "@types/node": "^12.0.3",
-    "@types/node-fetch": "^2.3.4",
-    "@types/recursive-readdir": "^2.2.0",
-    "@typescript-eslint/eslint-plugin": "^1.9.0",
-    "@typescript-eslint/parser": "^1.9.0",
+    "@types/async-retry": "1.4.1",
+    "@types/fs-extra": "7.0.0",
+    "@types/node": "12.0.4",
+    "@types/node-fetch": "2.3.4",
+    "@types/recursive-readdir": "2.2.0",
+    "@typescript-eslint/eslint-plugin": "1.9.0",
+    "@typescript-eslint/parser": "1.9.0",
     "@zeit/git-hooks": "0.1.4",
-    "@zeit/ncc": "^0.18.5",
+    "@zeit/ncc": "0.18.5",
     "eslint": "5.16.0",
-    "jest": "^24.8.0",
-    "typescript": "^3.5.1"
+    "jest": "24.8.0",
+    "typescript": "3.5.1"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
@@ -67,12 +67,12 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@zeit/fetch": "^5.1.0",
-    "async-retry": "^1.2.3",
-    "fetch-h2": "^2.2.0",
-    "fs-extra": "^8.0.1",
-    "node-fetch": "^2.6.0",
+    "@zeit/fetch": "5.1.0",
+    "async-retry": "1.2.3",
+    "fetch-h2": "2.2.0",
+    "fs-extra": "8.0.1",
+    "node-fetch": "2.6.0",
     "querystring": "^0.2.0",
-    "recursive-readdir": "^2.2.2"
+    "recursive-readdir": "2.2.2"
   }
 }
