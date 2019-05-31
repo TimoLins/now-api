@@ -9,8 +9,8 @@
     "prepare": "npm run build",
     "test": "npm run build && npm run testonly",
     "testonly": "jest -i --verbose",
-    "lint": "eslint --fix .ts,.js .",
-    "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.js' '*.jsx' | xargs eslint --fix"
+    "lint": "eslint --fix --ext .ts ./src",
+    "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.ts' | xargs eslint --fix"
   },
   "devDependencies": {
     "@types/async-retry": "^1.4.1",
