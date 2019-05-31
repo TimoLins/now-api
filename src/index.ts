@@ -5,6 +5,8 @@ import hashes from './utils/hashes'
 import Deployment from './deployment';
 import { getNowIgnore } from './utils';
 
+export { EVENTS } from './utils'
+
 export class DeploymentError extends Error {
   constructor(err: { code: string; message: string }) {
     super(err.message)
