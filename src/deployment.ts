@@ -8,6 +8,7 @@ import { DeploymentFile } from './utils/hashes'
 import { API_FILES, parseNowJSON, API_DEPLOYMENTS } from './utils'
 import { DeploymentError } from './'
 import pkg from '../package.json'
+import { isDone } from './utils/ready-state';
 
 const getDefaultName = (files: Map<string, DeploymentFile>): string => {
   const filePath = Array.from(files.values())[0].names[0]
@@ -247,7 +248,7 @@ export default class Deployment extends EventEmitter {
     Object.keys(this.builds).forEach((key: string): void => {
       const build = this.builds[key]
 
-      if (build.readyState !== 'READY') {
+      if (isDone(build)) {
         allBuildsCompleted = false
       }
     })
@@ -268,10 +269,10 @@ export default class Deployment extends EventEmitter {
   
       this._data = deploymentUpdate
   
-      if ((this._data as ZEITDeployment).readyState === 'READY') {
+      if (isDone(this._data as ZEITDeployment)) {
         this.emit('ready', deploymentUpdate)
   
-        // If the deployment is ready, peace out
+        // If the deployment is ready or failed, peace out
         return
       }
   
