@@ -3,7 +3,7 @@ import { readFile } from "fs-extra"
 import { join } from "path"
 
 export const API_FILES = 'https://api.zeit.co/v2/now/files'
-export const API_DEPLOYMENTS = 'https://api.zeit.co/v8/now/deployments'
+export const API_DEPLOYMENTS = 'https://api.zeit.co/v9/now/deployments'
 
 export const EVENTS = new Set([
   // File events

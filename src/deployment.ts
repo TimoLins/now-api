@@ -223,25 +223,14 @@ export default class Deployment extends EventEmitter {
     }
 
     // Get builds and deployment status
-    const [deploymentData, buildsData] = await Promise.all([
-      this._fetch(`${API_DEPLOYMENTS}/${this._data.id}${this.teamId ? `?teamId=${this.teamId}` : ''}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.token}`,
-        }
-      }),
-      this._fetch(`${API_DEPLOYMENTS}/${this._data.id}/builds${this.teamId ? `?teamId=${this.teamId}` : ''}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.token}`,
-        }
-      }),
-    ])
+    const buildsData = await this._fetch(`${API_DEPLOYMENTS}/${this._data.id}/builds${this.teamId ? `?teamId=${this.teamId}` : ''}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+      }
+    })
 
-    const [deploymentUpdate, { builds = [] }] = await Promise.all([
-      deploymentData.json(),
-      buildsData.json()
-    ])
+    const { builds = [] } = await buildsData.json()
 
     // Fire listeners for build status changes if needed
     builds.forEach((build: DeploymentBuild): void => {
@@ -254,24 +243,47 @@ export default class Deployment extends EventEmitter {
       this.builds[build.id] = build
     })
 
-    // Fire deployment state change listeners if needed
-    if (deploymentUpdate.readyState !== this._data.readyState) {
-      this.emit('deployment-state-changed', deploymentUpdate)
+    let allBuildsCompleted = true
+    Object.keys(this.builds).forEach((key: string): void => {
+      const build = this.builds[key]
+
+      if (build.readyState !== 'READY') {
+        allBuildsCompleted = false
+      }
+    })
+
+    if (allBuildsCompleted) {
+      const deploymentData = await this._fetch(`${API_DEPLOYMENTS}/${this._data.id}${this.teamId ? `?teamId=${this.teamId}` : ''}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+        }
+      })
+      const deploymentUpdate = await deploymentData.json()
+  
+      // Fire deployment state change listeners if needed
+      if (deploymentUpdate.readyState !== this._data.readyState) {
+        this.emit('deployment-state-changed', deploymentUpdate)
+      }
+  
+      this._data = deploymentUpdate
+  
+      if ((this._data as ZEITDeployment).readyState === 'READY') {
+        this.emit('ready', deploymentUpdate)
+  
+        // If the deployment is ready, peace out
+        return
+      }
+  
+      // Otherwise continue polling
+      setTimeout((): void => {
+        this.checkDeploymentStatus()
+      }, 3000)
+    } else {
+      setTimeout((): void => {
+        this.checkDeploymentStatus()
+      }, 3000)
     }
-
-    this._data = deploymentUpdate
-
-    if ((this._data as ZEITDeployment).readyState === 'READY') {
-      this.emit('ready', deploymentUpdate)
-
-      // If the deployment is ready, peace out
-      return
-    }
-
-    // Otherwise continue polling
-    setTimeout((): void => {
-      this.checkDeploymentStatus()
-    }, 3000)
   }
 
   _fetch = (url: string, opts: any = {}): Promise<any> => {
