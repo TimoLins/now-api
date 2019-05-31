@@ -9,6 +9,13 @@ import { API_FILES, parseNowJSON, API_DEPLOYMENTS } from './utils'
 import { DeploymentError } from './'
 import pkg from '../package.json'
 
+const getDefaultName = (files: Map<string, DeploymentFile>): string => {
+  const filePath = Array.from(files.values())[0].names[0]
+  const segments = filePath.split('/')
+
+  return segments[segments.length - 1]
+}
+
 export default class Deployment extends EventEmitter {
   constructor(files: Map<string, DeploymentFile>, { token, teamId, defaultName, isDirectory, path, ...metadata }: DeploymentOptions) {
     super()
@@ -32,7 +39,7 @@ export default class Deployment extends EventEmitter {
   files: Map<string, DeploymentFile>
   totalFiles: number;
   isDirectory?: boolean;
-  path?: string;
+  path?: string | string[];
   _data?: ZEITDeployment;
   poll?: NodeJS.Timeout;
 
@@ -120,21 +127,21 @@ export default class Deployment extends EventEmitter {
     if (!metadata.builds && !metadata.version && !metadata.name) {
       metadata.builds = [{ src: "**", use: "@now/static" }]
       metadata.version = 2
-      metadata.name = this.totalFiles === 1 ? 'file' : Array.from(this.files.values())[0].names[0]
-      
+      metadata.name = this.totalFiles === 1 ? 'file' : getDefaultName(this.files)
+
       this.emit('default-to-static', metadata)
     }
 
     if (!metadata.name) {
-      metadata.name = this.defaultName || Array.from(this.files.values())[0].names[0]
+      metadata.name = this.defaultName || getDefaultName(this.files)
     }
 
     if (metadata.version !== 2) {
       this.emit('error', { code: 'unsupported_version', message: 'Only Now 2.0 deployments are supported. Specify `version: 2` in your now.json and try again' })
-      
+
       return
     }
-    
+
     const { deployment, error } = await this.createDeployment(metadata)
 
     if (!deployment || error) {
@@ -168,42 +175,46 @@ export default class Deployment extends EventEmitter {
     }
 
     const files: PreparedFile[] = []
-    
-    if (this.isDirectory) {
-      this.files.forEach((file, sha): void => {
-        const name = this.path ? file.names[0].replace(`${this.path}/`, '') : file.names[0]
-        
-        files.push({
-          file: name,
-          size: file.data.byteLength || file.data.length,
-          sha,
-        })
-      })
+
+    this.files.forEach((file, sha): void => {
+      let name
       
-      const dpl = await this._fetch(`${API_DEPLOYMENTS}${this.teamId ? `?teamId=${this.teamId}` : ''}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
-        },
-        body: JSON.stringify({
-          ...metadata,
-          files
-        })
-      })
-    
-      const json = await dpl.json()
-    
-      if (!dpl.ok)  {
-        // Return error object
-        return json
+      if (this.isDirectory) {
+        // Directory
+        name = this.path ? file.names[0].replace(`${this.path}/`, '') : file.names[0]
+      } else {
+        // Array of files or single file
+        const segments = file.names[0].split('/')
+        name = segments[segments.length - 1]
       }
-    
-      return { deployment: json }
+
+      files.push({
+        file: name,
+        size: file.data.byteLength || file.data.length,
+        sha,
+      })
+    })
+
+    const dpl = await this._fetch(`${API_DEPLOYMENTS}${this.teamId ? `?teamId=${this.teamId}` : ''}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.token}`,
+      },
+      body: JSON.stringify({
+        ...metadata,
+        files
+      })
+    })
+
+    const json = await dpl.json()
+
+    if (!dpl.ok)  {
+      // Return error object
+      return json
     }
 
-    // TODO: Single file
-    return { error: { code: 'unsupported', message: 'Only directories are supported at the moment' } }
+    return { deployment: json }
   }
 
   checkDeploymentStatus = async (): Promise<void> => {
@@ -235,14 +246,14 @@ export default class Deployment extends EventEmitter {
     // Fire listeners for build status changes if needed
     builds.forEach((build: DeploymentBuild): void => {
       const prevState = this.builds[build.id]
-      
+
       if (!prevState || prevState.readyState !== build.readyState) {
         this.emit('build-state-changed', build)
       }
 
       this.builds[build.id] = build
     })
-    
+
     // Fire deployment state change listeners if needed
     if (deploymentUpdate.readyState !== this._data.readyState) {
       this.emit('deployment-state-changed', deploymentUpdate)

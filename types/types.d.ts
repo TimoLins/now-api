@@ -71,5 +71,5 @@ declare interface DeploymentOptions {
   name?: string;
   defaultName?: string;
   isDirectory?: boolean;
-  path?: string;
+  path?: string | string[];
 }

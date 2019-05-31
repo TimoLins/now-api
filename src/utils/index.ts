@@ -1,4 +1,6 @@
-import { DeploymentFile } from "./hashes";
+import { DeploymentFile } from "./hashes"
+import { readFile } from "fs-extra"
+import { join } from "path"
 
 export const API_FILES = 'https://api.zeit.co/v2/now/files'
 export const API_DEPLOYMENTS = 'https://api.zeit.co/v8/now/deployments'
@@ -36,4 +38,23 @@ export function parseNowJSON(file?: DeploymentFile): object {
 
     return {}
   }
+}
+
+export async function getNowIgnore(files: string[], path: string | string[]): Promise<string[]> {
+  let ignores: string[] = []
+
+  await Promise.all(files.map(async (file: string): Promise<void> => {
+    if (file.includes('.nowignore')) {
+      const filePath = Array.isArray(path)
+        ? file
+        : file.includes(path)
+          ? file
+          : join(path, file)
+      const nowIgnore = await readFile(filePath)
+
+      ignores = nowIgnore.toString().split('\n')
+    }
+  }))
+
+  return ignores
 }

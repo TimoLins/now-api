@@ -1,9 +1,9 @@
-import { join } from 'path'
-import { readdir as readRootFolder, readFile, lstatSync } from 'fs-extra'
+import { readdir as readRootFolder, lstatSync } from 'fs-extra'
 
 import readdir from 'recursive-readdir'
 import hashes from './utils/hashes'
 import Deployment from './deployment';
+import { getNowIgnore } from './utils';
 
 export class DeploymentError extends Error {
   constructor(err: { code: string; message: string }) {
@@ -15,14 +15,14 @@ export class DeploymentError extends Error {
   code: string
 }
 
-export default async function createDeployment(path: string, options: DeploymentOptions = {}): Promise<Deployment> {
-  if (typeof path !== 'string' || !Array.isArray(path)) {
+export default async function createDeployment(path: string | string[], options: DeploymentOptions = {}): Promise<Deployment> {
+  if (typeof path !== 'string' && !Array.isArray(path)) {
     throw new DeploymentError({
       code: 'missing_path',
       message: 'Path not provided'
     })
   }
-  
+
   if (typeof options.token !== 'string') {
     throw new DeploymentError({
       code: 'token_not_provided',
@@ -30,21 +30,31 @@ export default async function createDeployment(path: string, options: Deployment
     })
   }
 
+  const isDirectory = !Array.isArray(path) && lstatSync(path).isDirectory()
+
   // Get .nowignore
-  const rootFiles = await readRootFolder(path)
-  let ignores: string[] = []
-
-  if (rootFiles.includes('.nowignore')) {
-    const nowIgnore = await readFile(join(path, '.nowignore'))
-    ignores = nowIgnore.toString().split('\n')
+  let rootFiles
+  
+  if (isDirectory && !Array.isArray(path)) {
+    rootFiles = await readRootFolder(path)
+  } else if (Array.isArray(path)) {
+    rootFiles = path
+  } else {
+    rootFiles = [path]
   }
+  
+  let ignores: string[] = await getNowIgnore(rootFiles, path)
 
-  const isDirectory = !Array.isArray(path) || lstatSync(path).isDirectory()
   let fileList
 
-  if (isDirectory) {
+  if (isDirectory && !Array.isArray(path)) {
+    // Directory path
     fileList = await readdir(path, ignores)
+  } else if (Array.isArray(path)) {
+    // Array of file paths
+    fileList = path
   } else {
+    // Single file
     fileList = [path]
   }
 
