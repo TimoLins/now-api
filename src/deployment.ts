@@ -248,7 +248,7 @@ export default class Deployment extends EventEmitter {
     Object.keys(this.builds).forEach((key: string): void => {
       const build = this.builds[key]
 
-      if (isDone(build)) {
+      if (!isDone(build)) {
         allBuildsCompleted = false
       }
     })
