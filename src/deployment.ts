@@ -293,7 +293,7 @@ export default class Deployment extends EventEmitter {
       const query = parsedUrl.query
 
       query.teamId = opts.teamId
-      url = `${parsedUrl.pathname}?${qs.encode(query)}`
+      url = `${parsedUrl.href}?${qs.encode(query)}`
       delete opts.teamId
     }
 
