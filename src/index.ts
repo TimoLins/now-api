@@ -68,6 +68,7 @@ export default async function createDeployment(path: string | string[], options:
     isDirectory
   })
 
+  deployment.emit('hashes-calculated', files)
   deployment.deploy()
 
   return deployment

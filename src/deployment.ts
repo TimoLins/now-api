@@ -10,11 +10,17 @@ import { DeploymentError } from './'
 import pkg from '../package.json'
 import { isDone } from './utils/ready-state';
 
-const getDefaultName = (files: Map<string, DeploymentFile>): string => {
-  const filePath = Array.from(files.values())[0].names[0]
-  const segments = filePath.split('/')
+const getDefaultName = (path: string | string[] | undefined, isDirectory: boolean | undefined, files: Map<string, DeploymentFile>): string => {
+  if (isDirectory && typeof path === 'string') {
+    const segments = path.split('/')
 
-  return segments[segments.length - 1]
+    return segments[segments.length - 1]
+  } else {
+    const filePath = Array.from(files.values())[0].names[0]
+    const segments = filePath.split('/')
+
+    return segments[segments.length - 1]
+  }
 }
 
 export default class Deployment extends EventEmitter {
@@ -29,8 +35,6 @@ export default class Deployment extends EventEmitter {
     this.totalFiles = [...files.keys()].length
     this.isDirectory = isDirectory
     this.path = path
-
-    this.emit('hashes-calculated', files)
   }
 
   token: string
@@ -46,73 +50,79 @@ export default class Deployment extends EventEmitter {
 
   builds: { [key: string]: DeploymentBuild } = {}
 
-  upload = (): Promise<void> => new Promise((resolve): void => {
-    Promise.all(
-      Array.from(this.files.keys()).map((sha: string): Promise<void> => retry(
-        async (bail): Promise<void> => {
-          const file = this.files.get(sha)
+  upload = (): Promise<void> => new Promise(async (resolve, reject): Promise<void> => {
+    try {
+      await Promise.all(
+        [...this.files.keys()].map((sha: string): Promise<void> => retry(
+          async (bail): Promise<void> => {
+            const file = this.files.get(sha)
 
-          if (!file) {
-            return
-          }
-
-          const fPath = file.names[0]
-          const stream = createReadStream(fPath)
-          const { data } = file
-
-          const fstreamPush = stream.push
-
-          let uploadedSoFar = 0
-
-          stream.push = (chunk: any): boolean => {
-            // If we're about to push the last chunk, then don't do it here
-            // But instead, we'll "hang" the progress bar and do it on 200
-            if (chunk && uploadedSoFar + chunk.length < data.length) {
-              this.emit('upload-progress', chunk.length)
-              uploadedSoFar += chunk.length
+            if (!file) {
+              return
             }
-            return fstreamPush.call(stream, chunk)
+
+            const fPath = file.names[0]
+            const stream = createReadStream(fPath)
+            const { data } = file
+
+            const fstreamPush = stream.push
+
+            let uploadedSoFar = 0
+
+            stream.push = (chunk: any): boolean => {
+              // If we're about to push the last chunk, then don't do it here
+              // But instead, we'll "hang" the progress bar and do it on 200
+              if (chunk && uploadedSoFar + chunk.length < data.length) {
+                this.emit('upload-progress', chunk.length)
+                uploadedSoFar += chunk.length
+              }
+              return fstreamPush.call(stream, chunk)
+            }
+
+            // @ts-ignore
+            const res = await this._fetch(API_FILES, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/octet-stream',
+                'x-now-digest': sha,
+                'x-now-length': data.length,
+              },
+              body: stream,
+              teamId: this.teamId
+            })
+
+            if (res.status === 200) {
+              // What we want
+              this.emit('upload-progress', file.data.length - uploadedSoFar)
+              this.emit('file-uploaded', file)
+              stream.close()
+            } else if (res.status > 200 && res.status < 500) {
+              // If something is wrong with our request, we don't retry
+              stream.close()
+              const { error } = await res.json()
+              
+              return bail(new DeploymentError(error))
+            } else {
+              // If something is wrong with the server, we retry
+              stream.close()
+              const { error } = await res.json()
+
+              throw new DeploymentError(error)
+            }
+          },
+          {
+            retries: 3,
+            randomize: true
           }
+        )
+        ))
+    } catch (e) {
+      this.emit('error', e)
+      return reject(e)
+    }
 
-          // @ts-ignore
-          const res = await this._fetch(API_FILES, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/octet-stream',
-              'x-now-digest': sha,
-              'x-now-length': data.length,
-            },
-            body: stream,
-            teamId: this.teamId
-          })
-
-          if (res.status === 200) {
-            // What we want
-            this.emit('upload-progress', file.data.length - uploadedSoFar)
-            this.emit('file-uploaded', file)
-          } else if (res.status > 200 && res.status < 500) {
-            // If something is wrong with our request, we don't retry
-            const { error } = await res.json()
-
-            return bail(new DeploymentError(error))
-          } else {
-            // If something is wrong with the server, we retry
-            const { error } = await res.json()
-
-            throw new DeploymentError(error)
-          }
-        },
-        {
-          retries: 3,
-          randomize: true
-        }
-      )
-      ))
-      .then((): void => {
-        this.emit('all-files-uploaded')
-        resolve()
-      })
-      .catch((e: any): boolean => this.emit('error', e))
+    this.emit('all-files-uploaded')
+    resolve()
   })
 
   deploy = async (): Promise<void> => {
@@ -128,13 +138,13 @@ export default class Deployment extends EventEmitter {
     if (!metadata.builds && !metadata.version && !metadata.name) {
       metadata.builds = [{ src: "**", use: "@now/static" }]
       metadata.version = 2
-      metadata.name = this.totalFiles === 1 ? 'file' : getDefaultName(this.files)
+      metadata.name = this.totalFiles === 1 ? 'file' : getDefaultName(this.path, this.isDirectory, this.files)
 
       this.emit('default-to-static', metadata)
     }
 
     if (!metadata.name) {
-      metadata.name = this.defaultName || getDefaultName(this.files)
+      metadata.name = this.defaultName || getDefaultName(this.path, this.isDirectory, this.files)
     }
 
     if (metadata.version !== 2) {
@@ -179,7 +189,7 @@ export default class Deployment extends EventEmitter {
 
     this.files.forEach((file, sha): void => {
       let name
-      
+
       if (this.isDirectory) {
         // Directory
         name = this.path ? file.names[0].replace(`${this.path}/`, '') : file.names[0]
@@ -261,21 +271,21 @@ export default class Deployment extends EventEmitter {
         }
       })
       const deploymentUpdate = await deploymentData.json()
-  
+
       // Fire deployment state change listeners if needed
       if (deploymentUpdate.readyState !== this._data.readyState) {
         this.emit('deployment-state-changed', deploymentUpdate)
       }
-  
+
       this._data = deploymentUpdate
-  
+
       if (isDone(this._data as ZEITDeployment)) {
         this.emit('ready', deploymentUpdate)
   
         // If the deployment is ready or failed, peace out
         return
       }
-  
+
       // Otherwise continue polling
       setTimeout((): void => {
         this.checkDeploymentStatus()
@@ -302,7 +312,6 @@ export default class Deployment extends EventEmitter {
     opts.headers.authorization = `Bearer ${this.token}`
     // @ts-ignore
     opts.headers['user-agent'] = `now-client-v${pkg.version}`
-
     return fetch(url, opts)
   }
 }

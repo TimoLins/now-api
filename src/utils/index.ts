@@ -41,7 +41,31 @@ export function parseNowJSON(file?: DeploymentFile): object {
 }
 
 export async function getNowIgnore(files: string[], path: string | string[]): Promise<string[]> {
-  let ignores: string[] = []
+  let ignores: string[] = [
+    '.hg',
+    '.git',
+    '.gitmodules',
+    '.svn',
+    '.cache',
+    '.next',
+    '.now',
+    '.npmignore',
+    '.dockerignore',
+    '.gitignore',
+    '.*.swp',
+    '.DS_Store',
+    '.wafpicke-*',
+    '.lock-wscript',
+    '.env',
+    '.env.build',
+    '.venv',
+    'npm-debug.log',
+    'config.gypi',
+    'node_modules',
+    '__pycache__/',
+    'venv/',
+    'CVS',
+  ]
 
   await Promise.all(files.map(async (file: string): Promise<void> => {
     if (file.includes('.nowignore')) {
@@ -52,7 +76,11 @@ export async function getNowIgnore(files: string[], path: string | string[]): Pr
           : join(path, file)
       const nowIgnore = await readFile(filePath)
 
-      ignores = nowIgnore.toString().split('\n')
+      nowIgnore
+        .toString()
+        .split('\n')
+        .filter(s => s.length > 0)
+        .forEach(entry => ignores.push(entry))
     }
   }))
 
