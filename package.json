@@ -69,6 +69,7 @@
   "dependencies": {
     "@zeit/fetch": "5.1.0",
     "async-retry": "1.2.3",
+    "async-sema": "3.0.0",
     "fetch-h2": "2.2.0",
     "fs-extra": "8.0.1",
     "node-fetch": "2.6.0",
