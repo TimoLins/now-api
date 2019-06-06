@@ -1,12 +1,10 @@
 import { DeploymentFile } from './hashes'
 import { parse as parseUrl } from 'url'
 import { fetch as fetch_ } from 'fetch-h2'
-import retry from 'async-retry'
 import { readFile } from 'fs-extra'
 import { join } from 'path'
 import qs from 'querystring'
 import pkg from '../../package.json'
-import { DeploymentError } from '..'
 
 export const API_FILES = 'https://api.zeit.co/v2/now/files'
 export const API_DEPLOYMENTS = 'https://api.zeit.co/v9/now/deployments'
@@ -106,26 +104,5 @@ export const fetch = (url: string, token: string, opts: any = {}): Promise<any> 
   // @ts-ignore
   opts.headers['user-agent'] = `now-client-v${pkg.version}`
 
-  return retry(async (bail): Promise<any> => {
-    const res = await fetch_(url, opts)
-
-    if (res.status === 200) {
-      return res
-    } else if (res.status > 200 && res.status < 500) {
-      // If something is wrong with our request, we don't retry
-      const { error } = await res.json()
-      
-      return bail(new DeploymentError(error))
-    } else {
-      // If something is wrong with the server, we retry
-      const { error } = await res.json()
-
-      throw new DeploymentError(error)
-    }
-  },
-  {
-    retries: 3,
-    randomize: true
-  }
-  )
+  return fetch_(url, opts)
 }

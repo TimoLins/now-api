@@ -1,4 +1,3 @@
-import upload from './upload'
 import { DeploymentFile } from './utils/hashes'
 import { parseNowJSON, fetch, API_DEPLOYMENTS } from './utils'
 import checkDeploymentStatus from './deployment-status'
@@ -80,14 +79,6 @@ const getDefaultName = (path: string | string[] | undefined, isDirectory: boolea
 }
 
 export default async function* deploy(files: Map<string, DeploymentFile>, options: Options): AsyncIterableIterator<{ type: string; payload: any }> {
-  try {
-    for await(const event of upload(files, options.token, options.teamId)) {
-      yield event
-    }
-  } catch (e) {
-    return yield { type: 'error', payload: e }
-  }
-
   const nowJson: DeploymentFile | undefined = Array.from(files.values()).find((file: DeploymentFile): boolean => {
     return Boolean(file.names.find((name: string): boolean => name.includes('now.json')))
   })

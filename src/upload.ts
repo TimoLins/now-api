@@ -1,6 +1,8 @@
 import { createReadStream } from 'fs'
+import retry from 'async-retry'
 import { DeploymentFile } from './utils/hashes'
 import { API_FILES, fetch } from './utils'
+import { DeploymentError } from '.'
 
 export default async function* upload(files: Map<string, DeploymentFile>, token: string, teamId?: string): AsyncIterableIterator<any> {
   if (!files && !token && !teamId) {
@@ -11,11 +13,11 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
   const uploadList: { [key: string]: Promise<any> } = {}
 
   shas.map((sha: string): void => {
-    uploadList[sha] = new Promise(async (resolve, reject): Promise<void> => {
+    uploadList[sha] = retry(async (bail): Promise<any> => {
       const file = files.get(sha)
 
       if (!file) {
-        return reject()
+        return bail(new Error(`File ${sha} is undefined`))
       }
 
       const fPath = file.names[0]
@@ -46,7 +48,7 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
       // }
 
       try {
-        await fetch(API_FILES, token, {
+        const res = await fetch(API_FILES, token, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/octet-stream',
@@ -58,16 +60,33 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
         })
 
         stream.close()
-        
-        resolve({
-          type: 'file-uploaded',
-          payload: { sha, file }
-        })
+
+        if (res.status === 200) {
+          return {
+            type: 'file-uploaded',
+            payload: { sha, file }
+          }
+        } else if (res.status > 200 && res.status < 500) {
+          // If something is wrong with our request, we don't retry
+          const { error } = await res.json()
+          
+          return bail(new DeploymentError(error))
+        } else {
+          // If something is wrong with the server, we retry
+          const { error } = await res.json()
+    
+          throw new DeploymentError(error)
+        }
       } catch (e) {
         stream.close()
-        return reject(e)
+        return bail(new Error(e))
       }
-    })
+    },
+    {
+      retries: 3,
+      randomize: true
+    }
+    )
   })
   
   while (Object.keys(uploadList).length > 0) {
