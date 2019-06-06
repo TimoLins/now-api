@@ -52,6 +52,7 @@
       "react/no-unescaped-entities": 0,
       "react/jsx-no-target-blank": 0,
       "react/no-string-refs": 0,
+      "semi": ["error", "never"],
       "@typescript-eslint/indent": [
         "error",
         2

@@ -2,9 +2,9 @@ import { readdir as readRootFolder, lstatSync } from 'fs-extra'
 
 import readdir from 'recursive-readdir'
 import hashes from './utils/hashes'
-import upload from './upload';
-import deploy from './deploy';
-import { getNowIgnore } from './utils';
+import upload from './upload'
+import deploy from './deploy'
+import { getNowIgnore } from './utils'
 
 export { EVENTS } from './utils'
 

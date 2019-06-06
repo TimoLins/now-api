@@ -1,5 +1,5 @@
-import { fetch, API_DEPLOYMENTS } from "./utils";
-import { isDone } from "./utils/ready-state";
+import { fetch, API_DEPLOYMENTS } from "./utils"
+import { isDone } from "./utils/ready-state"
 
 interface DeploymentStatus {
   type: string;

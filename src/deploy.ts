@@ -1,7 +1,7 @@
 import upload from './upload'
-import { DeploymentFile } from './utils/hashes';
-import { parseNowJSON, fetch, API_DEPLOYMENTS } from './utils';
-import checkDeploymentStatus from './deployment-status';
+import { DeploymentFile } from './utils/hashes'
+import { parseNowJSON, fetch, API_DEPLOYMENTS } from './utils'
+import checkDeploymentStatus from './deployment-status'
 
 interface Options {
   metadata: DeploymentOptions;
@@ -20,9 +20,8 @@ async function* createDeployment (metadata: DeploymentOptions, files: Map<string
     size: number;
   }
 
-  const preparedFiles: PreparedFile[] = []
-
-  files.forEach((file, sha): void => {
+  const preparedFiles: PreparedFile[] = [...files.keys()].map((sha: string): PreparedFile => {
+    const file = files.get(sha) as DeploymentFile
     let name
 
     if (options.isDirectory) {
@@ -34,11 +33,11 @@ async function* createDeployment (metadata: DeploymentOptions, files: Map<string
       name = segments[segments.length - 1]
     }
 
-    preparedFiles.push({
+    return {
       file: name,
       size: file.data.byteLength || file.data.length,
       sha,
-    })
+    }
   })
 
   const dpl = await fetch(`${API_DEPLOYMENTS}${options.teamId ? `?teamId=${options.teamId}` : ''}`, options.token, {
@@ -55,18 +54,13 @@ async function* createDeployment (metadata: DeploymentOptions, files: Map<string
 
   const json = await dpl.json()
 
-  if (!dpl.ok)  {
+  if (!dpl.ok || json.error)  {
     // Return error object
-    yield { type: 'error', payload: json }
+    return yield { type: 'error', payload: json.error || json }
   }
-  
-  if (json.error) {
-    yield { type: 'error', payload: json.error }
-  } else {
-    yield { type: 'created', payload: json }
-  }
-}
 
+  yield { type: 'created', payload: json }
+}
 
 const getDefaultName = (path: string | string[] | undefined, isDirectory: boolean | undefined, files: Map<string, DeploymentFile>): string => {
   if (isDirectory && typeof path === 'string') {
