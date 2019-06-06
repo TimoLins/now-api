@@ -78,15 +78,19 @@ export default async function* createDeployment(path: string | string[], options
     ...metadata
   } = options
 
-  for await(const event of deploy(files, {
-    totalFiles: files.size,
-    token,
-    isDirectory,
-    path,
-    teamId,
-    defaultName,
-    metadata
-  })) {
-    yield event
+  try {
+    for await(const event of deploy(files, {
+      totalFiles: files.size,
+      token,
+      isDirectory,
+      path,
+      teamId,
+      defaultName,
+      metadata
+    })) {
+      yield event
+    }
+  } catch (e) {
+    yield { type: 'error', payload: e }
   }
 }

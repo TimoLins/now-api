@@ -1,7 +1,6 @@
 import { createReadStream } from 'fs'
 import { DeploymentFile } from './utils/hashes'
 import { API_FILES, fetch } from './utils'
-import { DeploymentError } from '.'
 
 export default async function* upload(files: Map<string, DeploymentFile>, token: string, teamId?: string): AsyncIterableIterator<any> {
   if (!files && !token && !teamId) {
@@ -12,11 +11,11 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
   const uploadList: { [key: string]: Promise<any> } = {}
 
   shas.map((sha: string): void => {
-    uploadList[sha] = new Promise(async (resolve): Promise<void> => {
+    uploadList[sha] = new Promise(async (resolve, reject): Promise<void> => {
       const file = files.get(sha)
 
       if (!file) {
-        return
+        return reject()
       }
 
       const fPath = file.names[0]
@@ -66,16 +65,20 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
         })
       } catch (e) {
         stream.close()
-        throw new DeploymentError(e)
+        return reject(e)
       }
     })
   })
   
   while (Object.keys(uploadList).length > 0) {
-    const event = await Promise.race(Object.keys(uploadList).map((key): Promise<any> => uploadList[key]))
-    
-    delete uploadList[event.payload.sha]
-    yield event
+    try {
+      const event = await Promise.race(Object.keys(uploadList).map((key): Promise<any> => uploadList[key]))
+      
+      delete uploadList[event.payload.sha]
+      yield event
+    } catch (e) {
+      return yield { type: 'error', payload: e }
+    }
   }
 
   return
