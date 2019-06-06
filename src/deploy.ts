@@ -1,6 +1,7 @@
 import upload from './upload'
 import { DeploymentFile } from './utils/hashes';
 import { parseNowJSON, fetch, API_DEPLOYMENTS } from './utils';
+import checkDeploymentStatus from './deployment-status';
 
 interface Options {
   metadata: DeploymentOptions;
@@ -116,9 +117,23 @@ export default async function* deploy(files: Map<string, DeploymentFile>, option
     return
   }
 
+  let deployment: Deployment | undefined
+
   for await(const event of createDeployment(metadata, files, options)) {
+    if (event.type === 'created') {
+      deployment = event.payload
+    }
+
     yield event
   }
 
-  // TODO: State change polling
+  if (deployment) {
+    if (deployment.readyState === 'READY') {
+      return yield { type: 'ready', payload: deployment }
+    }
+
+    for await(const event of checkDeploymentStatus(deployment, options.token, options.teamId)) {
+      yield event
+    }
+  }
 }

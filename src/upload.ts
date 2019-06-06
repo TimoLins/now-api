@@ -60,8 +60,9 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
             teamId
           })
         } catch (e) {
-          if (!e.toString().includes('aborted')) {
-            return bail(new DeploymentError(e))
+          if (e.code) {
+            stream.close()
+            throw new DeploymentError(e)
           }
         }
 

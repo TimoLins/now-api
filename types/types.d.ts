@@ -13,7 +13,7 @@ declare interface Build {
   use: string;
 }
 
-declare interface ZEITDeployment {
+declare interface Deployment {
   id: string;
   url: string;
   name: string;
