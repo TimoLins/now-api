@@ -60,10 +60,8 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
             teamId
           })
         } catch (e) {
-          if (e.code) {
-            stream.close()
-            throw new DeploymentError(e)
-          }
+          stream.close()
+          throw new DeploymentError(e)
         }
 
         const json = await res.json()

@@ -1,5 +1,3 @@
-# ⚠️ THE API IS UNSTABLE. IF YOU USE THIS PACKAGE, EXPECT THE APIS TO CHANGE SIGNIFICANTLY
-
 # now client
 
 
@@ -23,20 +21,24 @@ Next, load it:
 const createDeployment = require('now-client')
 ```
 
-Then call it with the files you want to deploy:
+Then call inside a `for...of` loop to follow the progress with the following arguments:
 
-- `<files>` - a directory path / file path / array of file paths (must be on the same level)
+- `<path>` - a directory path / file path / array of file paths (must be on the same level)
 - `<options>` - An object containing `token`, an optional `teamId` and any `now.json`-valid [fields](https://zeit.co/docs/api#endpoints/deployments/create-a-new-deployment)
 
 ```js
-const deployment = await createDeployment('/Users/zeit-user/projects/front', { token: process.env.TOKEN })
-```
+async function deploy() {
+  let deployment
 
-Lastly, subscribe to events you're interested in:
+  for await(const event of createDeployment('/Users/zeit-user/projects/front', { token: process.env.TOKEN })) {
+    if (event.type === 'ready') {
+      deployment = event.payload
+      break
+    }
+  }
 
-```js
-deployment.on('ready', onReady)
-deployment.on('error', console.error)
+  return deployment
+}
 ```
 
 Full list of events:
@@ -45,19 +47,16 @@ Full list of events:
 [
   // File events (receive relevant data as payload)
   'hashes-calculated',
-  'upload-progress',
   'file-uploaded',
   'all-files-uploaded',
   // Deployment events (receive deployment object as payload, except `default-to-static`)
   'default-to-static', // Receives `now.json`-compliant config object
   'created',
-  'deployment-created',
   'deployment-state-changed',
   'ready',
   'error',
   // Build events (receive build object as payload)
   'build-state-changed',
-  'build-ready',
 ]
 ```
 

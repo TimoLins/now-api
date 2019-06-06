@@ -12,19 +12,16 @@ export const API_DEPLOYMENTS = 'https://api.zeit.co/v9/now/deployments'
 export const EVENTS = new Set([
   // File events
   'hashes-calculated',
-  'upload-progress',
   'file-uploaded',
   'all-files-uploaded',
   // Deployment events
   'default-to-static',
   'created',
-  'deployment-created',
   'deployment-state-changed',
   'ready',
   'error',
   // Build events
   'build-state-changed',
-  'build-ready',
 ])
 
 export function parseNowJSON(file?: DeploymentFile): object {
