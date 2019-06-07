@@ -82,9 +82,6 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
           teamId
         })
 
-        stream.close()
-        stream.destroy()
-
         if (res.status === 200) {
           return {
             type: 'file-uploaded',
@@ -102,9 +99,10 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
           throw new DeploymentError(error)
         }
       } catch (e) {
+        return bail(new Error(e))
+      } finally {
         stream.close()
         stream.destroy()
-        return bail(new Error(e))
       }
     },
     {
