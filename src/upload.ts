@@ -70,6 +70,9 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
       //   yield uploadedSoFar;
       // }
 
+      let err
+      let result
+
       try {
         const res = await fetch(API_FILES, token, {
           method: 'POST',
@@ -83,7 +86,7 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
         })
 
         if (res.status === 200) {
-          return {
+          result = {
             type: 'file-uploaded',
             payload: { sha, file }
           }
@@ -91,7 +94,7 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
           // If something is wrong with our request, we don't retry
           const { error } = await res.json()
           
-          return bail(new DeploymentError(error))
+          err = new DeploymentError(error)
         } else {
           // If something is wrong with the server, we retry
           const { error } = await res.json()
@@ -99,11 +102,17 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
           throw new DeploymentError(error)
         }
       } catch (e) {
-        return bail(new Error(e))
+        err = new Error(e)
       } finally {
         stream.close()
         stream.destroy()
       }
+
+      if (err) {
+        return bail(err)
+      }
+
+      return result
     },
     {
       retries: 6,
