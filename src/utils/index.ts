@@ -5,6 +5,7 @@ import { readFile } from 'fs-extra'
 import { join } from 'path'
 import qs from 'querystring'
 import pkg from '../../package.json'
+import { Options } from '../deploy'
 
 export const API_FILES = 'https://api.zeit.co/v2/now/files'
 export const API_DEPLOYMENTS = 'https://api.zeit.co/v9/now/deployments'
@@ -105,4 +106,34 @@ export const fetch = (url: string, token: string, opts: any = {}): Promise<any> 
   opts.headers['user-agent'] = `now-client-v${pkg.version}`
 
   return fetch_(url, opts)
+}
+
+export interface PreparedFile {
+  file: string;
+  sha: string;
+  size: number;
+}
+
+export const prepareFiles = (files: Map<string, DeploymentFile>, options: Options): PreparedFile[] => {
+  const preparedFiles = [...files.keys()].map((sha: string): PreparedFile => {
+    const file = files.get(sha) as DeploymentFile
+    let name
+
+    if (options.isDirectory) {
+      // Directory
+      name = options.path ? file.names[0].replace(`${options.path}/`, '') : file.names[0]
+    } else {
+      // Array of files or single file
+      const segments = file.names[0].split('/')
+      name = segments[segments.length - 1]
+    }
+
+    return {
+      file: name,
+      size: file.data.byteLength || file.data.length,
+      sha,
+    }
+  })
+  
+  return preparedFiles
 }

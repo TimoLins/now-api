@@ -2,8 +2,7 @@ import { readdir as readRootFolder, lstatSync } from 'fs-extra'
 
 import readdir from 'recursive-readdir'
 import hashes from './utils/hashes'
-import upload from './upload'
-import deploy from './deploy'
+import uploadAndDeploy from './upload'
 import { getNowIgnore } from './utils'
 
 export { EVENTS } from './utils'
@@ -65,12 +64,6 @@ export default async function* createDeployment(path: string | string[], options
 
   yield { type: 'hashes-calculated', payload: files }
 
-  for await(const event of upload(files, options.token, options.teamId)) {
-    yield event
-  }
-
-  yield { type: 'all-files-uploaded', payload: files }
-
   const {
     token,
     teamId,
@@ -78,19 +71,17 @@ export default async function* createDeployment(path: string | string[], options
     ...metadata
   } = options
 
-  try {
-    for await(const event of deploy(files, {
-      totalFiles: files.size,
-      token,
-      isDirectory,
-      path,
-      teamId,
-      defaultName,
-      metadata
-    })) {
-      yield event
-    }
-  } catch (e) {
-    yield { type: 'error', payload: e }
+  const deploymentOpts = {
+    totalFiles: files.size,
+    token,
+    isDirectory,
+    path,
+    teamId,
+    defaultName,
+    metadata
+  }
+
+  for await(const event of uploadAndDeploy(files, deploymentOpts)) {
+    yield event
   }
 }

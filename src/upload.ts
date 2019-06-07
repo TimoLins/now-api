@@ -1,15 +1,38 @@
 import { createReadStream } from 'fs'
 import retry from 'async-retry'
 import { DeploymentFile } from './utils/hashes'
-import { API_FILES, fetch } from './utils'
+import {  fetch, API_FILES } from './utils'
 import { DeploymentError } from '.'
+import deploy, { Options } from './deploy'
 
-export default async function* upload(files: Map<string, DeploymentFile>, token: string, teamId?: string): AsyncIterableIterator<any> {
+export default async function* upload(files: Map<string, DeploymentFile>, options: Options): AsyncIterableIterator<any> {
+  const { token, teamId } = options
+
   if (!files && !token && !teamId) {
     return
   }
 
-  const shas = [...files.keys()]
+  let missingFiles = []
+
+  for await(const event of deploy(files, options)) {
+    if (event.type === 'error') {
+      if (event.payload.code === 'missing_files') {
+        missingFiles = event.payload.missing
+      } else {
+        return yield event
+      }
+    } else {
+      // If the deployment has succeeded here, don't continue
+      if (event.type === 'ready') {
+        return yield event
+      } else {
+        yield event
+      }
+    }
+
+  }
+
+  const shas = missingFiles
   const uploadList: { [key: string]: Promise<any> } = {}
 
   shas.map((sha: string): void => {
@@ -60,6 +83,7 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
         })
 
         stream.close()
+        stream.destroy()
 
         if (res.status === 200) {
           return {
@@ -79,11 +103,12 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
         }
       } catch (e) {
         stream.close()
+        stream.destroy()
         return bail(new Error(e))
       }
     },
     {
-      retries: 3,
+      retries: 6,
       randomize: true
     }
     )
@@ -100,5 +125,13 @@ export default async function* upload(files: Map<string, DeploymentFile>, token:
     }
   }
 
-  return
+  yield { type: 'all-files-uploaded', payload: files }
+
+  try {
+    for await(const event of deploy(files, options)) {
+      yield event
+    }
+  } catch (e) {
+    yield { type: 'error', payload: e }
+  }
 }
