@@ -18,7 +18,6 @@ export const EVENTS = new Set([
   // Deployment events
   'default-to-static',
   'created',
-  'deployment-state-changed',
   'ready',
   'error',
   // Build events

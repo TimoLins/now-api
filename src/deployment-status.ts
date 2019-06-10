@@ -55,18 +55,12 @@ export default async function* checkDeploymentStatus(deployment: Deployment, tok
       const deploymentData = await fetch(`${API_DEPLOYMENTS}/${deployment.id}${teamId ? `?teamId=${teamId}` : ''}`, token)
       const deploymentUpdate = await deploymentData.json()
 
-      // Fire deployment state change listeners if needed
-      if (deploymentUpdate.readyState !== deploymentState.readyState) {
-        if (isReady(deploymentUpdate)) {
-          return yield { type: 'ready', payload: deploymentUpdate }
-        }
-        if (isFailed(deploymentUpdate)) {
-          return yield { type: 'error', payload: deploymentUpdate }
-        }
-      } else {
-        deploymentState = deploymentUpdate
+      if (isReady(deploymentUpdate)) {
+        return yield { type: 'ready', payload: deploymentUpdate }
+      }
 
-        yield { type: 'deployment-state-changed', payload: deploymentUpdate }
+      if (isFailed(deploymentUpdate)) {
+        return yield { type: 'error', payload: deploymentUpdate }
       }
     }
 

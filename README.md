@@ -52,7 +52,6 @@ Full list of events:
   // Deployment events (receive deployment object as payload, except `default-to-static`)
   'default-to-static', // Receives `now.json`-compliant config object
   'created',
-  'deployment-state-changed',
   'ready',
   'error',
   // Build events (receive build object as payload)
