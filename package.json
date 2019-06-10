@@ -81,6 +81,7 @@
     "node-fetch": "2.6.0",
     "now-client": "4.1.2",
     "querystring": "^0.2.0",
-    "recursive-readdir": "2.2.2"
+    "recursive-readdir": "2.2.2",
+    "sleep-promise": "8.0.1"
   }
 }

@@ -1,3 +1,4 @@
+import sleep from 'sleep-promise'
 import ms from 'ms'
 import { fetch, API_DEPLOYMENTS } from "./utils"
 import { isDone, isReady, isFailed } from "./utils/ready-state"
@@ -5,12 +6,6 @@ import { isDone, isReady, isFailed } from "./utils/ready-state"
 interface DeploymentStatus {
   type: string;
   payload: Deployment | DeploymentBuild[];
-}
-
-function sleep(time: number): Promise<void> {
-  return new Promise((resolve): void => {
-    setTimeout(resolve, time)
-  })
 }
 
 /* eslint-disable */
