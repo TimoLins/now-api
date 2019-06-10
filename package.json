@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/async-retry": "1.4.1",
     "@types/fs-extra": "7.0.0",
+    "@types/ms": "0.7.30",
     "@types/node": "12.0.4",
     "@types/node-fetch": "2.3.4",
     "@types/recursive-readdir": "2.2.0",
@@ -76,6 +77,7 @@
     "async-sema": "3.0.0",
     "fetch-h2": "2.2.0",
     "fs-extra": "8.0.1",
+    "ms": "2.1.2",
     "node-fetch": "2.6.0",
     "now-client": "4.1.2",
     "querystring": "^0.2.0",

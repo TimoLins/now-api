@@ -1,9 +1,16 @@
+import ms from 'ms'
 import { fetch, API_DEPLOYMENTS } from "./utils"
 import { isDone, isReady, isFailed } from "./utils/ready-state"
 
 interface DeploymentStatus {
   type: string;
   payload: Deployment | DeploymentBuild[];
+}
+
+function sleep(time: number): Promise<void> {
+  return new Promise((resolve): void => {
+    setTimeout(resolve, time)
+  })
 }
 
 /* eslint-disable */
@@ -18,43 +25,51 @@ export default async function* checkDeploymentStatus(deployment: Deployment, tok
   }
 
   // Build polling
-  while (!allBuildsCompleted) {
-    const buildsData = await fetch(`${API_DEPLOYMENTS}/${deployment.id}/builds${teamId ? `?teamId=${teamId}` : ''}`, token)
-    const { builds = [] } = await buildsData.json()
+  while (true) {
+    if (!allBuildsCompleted) {
+      const buildsData = await fetch(`${API_DEPLOYMENTS}/${deployment.id}/builds${teamId ? `?teamId=${teamId}` : ''}`, token)
+      const { builds = [] } = await buildsData.json()
 
-    for (const build of builds) {
-      const prevState = buildsState[build.id]
+      for (const build of builds) {
+        const prevState = buildsState[build.id]
 
-      if (!prevState || prevState.readyState !== build.readyState) {
-        yield { type: 'build-state-changed', payload: build }
+        if (!prevState || prevState.readyState !== build.readyState) {
+          yield { type: 'build-state-changed', payload: build }
+        }
+
+        if (build.readyState.includes('ERROR')) {
+          return yield { type: 'error', payload: build }
+        }
+
+        buildsState[build.id] = build
       }
 
-      buildsState[build.id] = build
+      const readyBuilds = builds.filter((b: DeploymentBuild) => isDone(b))
+
+      if (readyBuilds.length === builds.length) {
+        allBuildsCompleted = true
+        yield { type: 'all-builds-completed', payload: readyBuilds }
+      }
+    } else {
+      // Deployment polling
+      const deploymentData = await fetch(`${API_DEPLOYMENTS}/${deployment.id}${teamId ? `?teamId=${teamId}` : ''}`, token)
+      const deploymentUpdate = await deploymentData.json()
+
+      // Fire deployment state change listeners if needed
+      if (deploymentUpdate.readyState !== deploymentState.readyState) {
+        if (isReady(deploymentUpdate)) {
+          return yield { type: 'ready', payload: deploymentUpdate }
+        }
+        if (isFailed(deploymentUpdate)) {
+          return yield { type: 'error', payload: deploymentUpdate }
+        }
+      } else {
+        deploymentState = deploymentUpdate
+
+        yield { type: 'deployment-state-changed', payload: deploymentUpdate }
+      }
     }
 
-    const readyBuilds = builds.filter((b: DeploymentBuild) => isDone(b))
-
-    if (readyBuilds.length === builds.length) {
-      allBuildsCompleted = true
-      yield { type: 'all-builds-completed', payload: readyBuilds }
-    }
-  }
-
-  // Deployment polling
-  const deploymentData = await fetch(`${API_DEPLOYMENTS}/${deployment.id}${teamId ? `?teamId=${teamId}` : ''}`, token)
-  const deploymentUpdate = await deploymentData.json()
-
-  // Fire deployment state change listeners if needed
-  if (deploymentUpdate.readyState !== deploymentState.readyState) {
-    if (isReady(deploymentUpdate)) {
-      return yield { type: 'ready', payload: deploymentUpdate }
-    }
-    if (isFailed(deploymentUpdate)) {
-      return yield { type: 'error', payload: deploymentUpdate }
-    }
-  } else {
-    deploymentState = deploymentUpdate
-
-    yield { type: 'deployment-state-changed', payload: deploymentUpdate }
+    await sleep(ms('1.5s'))
   }
 }
