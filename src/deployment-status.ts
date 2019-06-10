@@ -1,5 +1,5 @@
 import { fetch, API_DEPLOYMENTS } from "./utils"
-import { isDone } from "./utils/ready-state"
+import { isDone, isReady, isFailed } from "./utils/ready-state"
 
 interface DeploymentStatus {
   type: string;
@@ -46,8 +46,11 @@ export default async function* checkDeploymentStatus(deployment: Deployment, tok
 
   // Fire deployment state change listeners if needed
   if (deploymentUpdate.readyState !== deploymentState.readyState) {
-    if (isDone(deploymentUpdate)) {
+    if (isReady(deploymentUpdate)) {
       return yield { type: 'ready', payload: deploymentUpdate }
+    }
+    if (isFailed(deploymentUpdate)) {
+      return yield { type: 'error', payload: deploymentUpdate }
     }
   } else {
     deploymentState = deploymentUpdate
