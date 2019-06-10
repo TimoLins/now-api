@@ -115,25 +115,33 @@ export interface PreparedFile {
 }
 
 export const prepareFiles = (files: Map<string, DeploymentFile>, options: Options): PreparedFile[] => {
-  const preparedFiles = [...files.keys()].map((sha: string): PreparedFile => {
+  const preparedFiles = [...files.keys()].reduce((acc: PreparedFile[], sha: string): PreparedFile[] => {
+    const next = [...acc]
+
     const file = files.get(sha) as DeploymentFile
-    let name
 
-    if (options.isDirectory) {
-      // Directory
-      name = options.path ? file.names[0].replace(`${options.path}/`, '') : file.names[0]
-    } else {
-      // Array of files or single file
-      const segments = file.names[0].split('/')
-      name = segments[segments.length - 1]
+    for (const name of file.names) {
+      let fileName
+
+      if (options.isDirectory) {
+        // Directory
+        fileName = options.path ? name.replace(`${options.path}/`, '') : name
+      } else {
+        // Array of files or single file
+        const segments = name.split('/')
+        fileName = segments[segments.length - 1]
+      }
+
+      next.push({
+        file: fileName,
+        size: file.data.byteLength || file.data.length,
+        sha,
+      })
     }
 
-    return {
-      file: name,
-      size: file.data.byteLength || file.data.length,
-      sha,
-    }
-  })
-  
+
+    return next
+  }, [])
+
   return preparedFiles
 }

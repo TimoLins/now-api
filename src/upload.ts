@@ -25,9 +25,9 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
       // If the deployment has succeeded here, don't continue
       if (event.type === 'ready') {
         return yield event
-      } else {
-        yield event
       }
+
+      yield event
     }
 
   }
@@ -65,7 +65,7 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
 
       // while (uploadedSoFar !== file.data.length) {
       //   await semaphore.acquire()
-      
+
       //   lastEvent = uploadedSoFar;
       //   yield uploadedSoFar;
       // }
@@ -93,12 +93,12 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
         } else if (res.status > 200 && res.status < 500) {
           // If something is wrong with our request, we don't retry
           const { error } = await res.json()
-          
+
           err = new DeploymentError(error)
         } else {
           // If something is wrong with the server, we retry
           const { error } = await res.json()
-    
+
           throw new DeploymentError(error)
         }
       } catch (e) {
@@ -120,11 +120,11 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
     }
     )
   })
-  
+
   while (Object.keys(uploadList).length > 0) {
     try {
       const event = await Promise.race(Object.keys(uploadList).map((key): Promise<any> => uploadList[key]))
-      
+
       delete uploadList[event.payload.sha]
       yield event
     } catch (e) {
@@ -136,6 +136,10 @@ export default async function* upload(files: Map<string, DeploymentFile>, option
 
   try {
     for await(const event of deploy(files, options)) {
+      if (event.type === 'ready') {
+        return yield event
+      }
+
       yield event
     }
   } catch (e) {
