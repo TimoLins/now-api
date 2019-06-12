@@ -67,6 +67,7 @@ export default async function* createDeployment(path: string | string[], options
   const {
     token,
     teamId,
+    force,
     defaultName,
     ...metadata
   } = options
@@ -77,6 +78,7 @@ export default async function* createDeployment(path: string | string[], options
     isDirectory,
     path,
     teamId,
+    force,
     defaultName,
     metadata
   }

@@ -68,6 +68,7 @@ declare interface DeploymentOptions {
   target?: string;
   token?: string | null;
   teamId?: string;
+  force?: boolean;
   name?: string;
   defaultName?: string;
   isDirectory?: boolean;

@@ -1,6 +1,7 @@
 import { DeploymentFile } from './utils/hashes'
 import { parseNowJSON, fetch, API_DEPLOYMENTS, prepareFiles } from './utils'
 import checkDeploymentStatus from './deployment-status'
+import { generateQueryString } from './utils/query-string';
 
 export interface Options {
   metadata: DeploymentOptions;
@@ -8,6 +9,7 @@ export interface Options {
   path: string | string[];
   token: string;
   teamId?: string;
+  force?: boolean;
   isDirectory?: boolean;
   defaultName?: string;
   preflight?: boolean;
@@ -17,7 +19,7 @@ async function* createDeployment (metadata: DeploymentOptions, files: Map<string
   const preparedFiles = prepareFiles(files, options)
 
   try {
-    const dpl = await fetch(`${API_DEPLOYMENTS}${options.teamId ? `?teamId=${options.teamId}` : ''}`, options.token, {
+    const dpl = await fetch(`${API_DEPLOYMENTS}${generateQueryString(options)}`, options.token, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
