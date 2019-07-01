@@ -16,7 +16,6 @@ export const EVENTS = new Set([
   'file-uploaded',
   'all-files-uploaded',
   // Deployment events
-  'default-to-static',
   'created',
   'ready',
   'error',

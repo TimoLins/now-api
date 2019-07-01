@@ -49,8 +49,7 @@ Full list of events:
   'hashes-calculated',
   'file-uploaded',
   'all-files-uploaded',
-  // Deployment events (receive deployment object as payload, except `default-to-static`)
-  'default-to-static', // Receives `now.json`-compliant config object
+  // Deployment events (receive deployment object as payload)
   'created',
   'ready',
   'error',

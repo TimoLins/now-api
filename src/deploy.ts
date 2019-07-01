@@ -28,14 +28,14 @@ async function* createDeployment (metadata: DeploymentOptions, files: Map<string
         files: preparedFiles
       })
     })
-  
+
     const json = await dpl.json()
-  
+
     if (!dpl.ok || json.error)  {
       // Return error object
       return yield { type: 'error', payload: json.error || json }
     }
-  
+
     yield { type: 'created', payload: json }
   } catch (e) {
     return yield { type: 'error', payload: e }
@@ -65,12 +65,9 @@ export default async function* deploy(files: Map<string, DeploymentFile>, option
   const metadata = { ...nowJsonMetadata, ...meta }
 
   // Check if we should default to a static deployment
-  if (!metadata.builds && !metadata.version && !metadata.name) {
-    metadata.builds = [{ src: "**", use: "@now/static" }]
+  if (!metadata.version && !metadata.name) {
     metadata.version = 2
     metadata.name = options.totalFiles === 1 ? 'file' : getDefaultName(options.path, options.isDirectory, files)
-
-    yield { type: 'default-to-static', payload: metadata }
   }
 
   if (!metadata.name) {
@@ -93,7 +90,7 @@ export default async function* deploy(files: Map<string, DeploymentFile>, option
       if (event.type === 'created') {
         deployment = event.payload
       }
-  
+
       yield event
     }
   } catch (e) {
