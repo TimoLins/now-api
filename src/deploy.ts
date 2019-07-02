@@ -83,6 +83,9 @@ export default async function* deploy(files: Map<string, DeploymentFile>, option
     return
   }
 
+  delete metadata.github
+  delete metadata.scope
+
   let deployment: Deployment | undefined
 
   try {
