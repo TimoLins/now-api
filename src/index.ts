@@ -1,7 +1,7 @@
 import { readdir as readRootFolder, lstatSync } from 'fs-extra'
 
 import readdir from 'recursive-readdir'
-import hashes from './utils/hashes'
+import hashes, { mapToObject } from './utils/hashes'
 import uploadAndDeploy from './upload'
 import { getNowIgnore } from './utils'
 
@@ -17,18 +17,21 @@ export class DeploymentError extends Error {
   code: string
 }
 
-export default async function* createDeployment(path: string | string[], options: DeploymentOptions = {}): AsyncIterableIterator<any> {
+export default async function* createDeployment(
+  path: string | string[],
+  options: DeploymentOptions = {},
+): AsyncIterableIterator<any> {
   if (typeof path !== 'string' && !Array.isArray(path)) {
     throw new DeploymentError({
       code: 'missing_path',
-      message: 'Path not provided'
+      message: 'Path not provided',
     })
   }
 
   if (typeof options.token !== 'string') {
     throw new DeploymentError({
       code: 'token_not_provided',
-      message: 'Options object must include a `token`'
+      message: 'Options object must include a `token`',
     })
   }
 
@@ -36,7 +39,7 @@ export default async function* createDeployment(path: string | string[], options
 
   // Get .nowignore
   let rootFiles
-  
+
   if (isDirectory && !Array.isArray(path)) {
     rootFiles = await readRootFolder(path)
   } else if (Array.isArray(path)) {
@@ -44,7 +47,7 @@ export default async function* createDeployment(path: string | string[], options
   } else {
     rootFiles = [path]
   }
-  
+
   let ignores: string[] = await getNowIgnore(rootFiles, path)
 
   let fileList
@@ -62,15 +65,9 @@ export default async function* createDeployment(path: string | string[], options
 
   const files = await hashes(fileList)
 
-  yield { type: 'hashes-calculated', payload: files }
+  yield { type: 'hashes-calculated', payload: { files: mapToObject(files) } }
 
-  const {
-    token,
-    teamId,
-    force,
-    defaultName,
-    ...metadata
-  } = options
+  const { token, teamId, force, defaultName, ...metadata } = options
 
   const deploymentOpts = {
     totalFiles: files.size,
@@ -80,10 +77,10 @@ export default async function* createDeployment(path: string | string[], options
     teamId,
     force,
     defaultName,
-    metadata
+    metadata,
   }
 
-  for await(const event of uploadAndDeploy(files, deploymentOpts)) {
+  for await (const event of uploadAndDeploy(files, deploymentOpts)) {
     yield event
   }
 }
