@@ -1,6 +1,6 @@
 {
   "name": "now-client",
-  "version": "4.3.1",
+  "version": "4.4.1",
   "main": "lib/index.js",
   "license": "MIT",
   "author": "Max Rovensky <max@zeit.co>",

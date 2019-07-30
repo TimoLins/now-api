@@ -73,4 +73,6 @@ declare interface DeploymentOptions {
   defaultName?: string;
   isDirectory?: boolean;
   path?: string | string[];
+  github: any;
+  scope: string;
 }
