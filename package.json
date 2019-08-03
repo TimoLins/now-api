@@ -7,14 +7,14 @@
   "scripts": {
     "build": "ncc build ./src/index.ts -o ./lib --source-map",
     "prepare": "npm run build",
-    "test": "npm run build && npm run testonly",
-    "testonly": "jest -i --verbose",
+    "test": "jest --verbose --forceExit",
     "lint": "eslint --fix --ext .ts ./src",
     "lint-staged": "git diff --diff-filter=ACMRT --cached --name-only '*.ts' | xargs eslint --fix"
   },
   "devDependencies": {
     "@types/async-retry": "1.4.1",
     "@types/fs-extra": "7.0.0",
+    "@types/jest": "24.0.16",
     "@types/ms": "0.7.30",
     "@types/node": "12.0.4",
     "@types/node-fetch": "2.3.4",
@@ -25,6 +25,7 @@
     "@zeit/ncc": "0.18.5",
     "eslint": "5.16.0",
     "jest": "24.8.0",
+    "ts-jest": "24.0.2",
     "typescript": "3.5.1"
   },
   "eslintConfig": {
@@ -69,7 +70,12 @@
     "pre-commit": "lint-staged"
   },
   "jest": {
-    "testEnvironment": "node"
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "verbose": false,
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup/index.ts"
+    ]
   },
   "dependencies": {
     "@zeit/fetch": "5.1.0",

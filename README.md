@@ -1,9 +1,8 @@
 # now client
 
-
 [![Build Status](https://travis-ci.org/zeit/now-client.svg?branch=master)](https://travis-ci.org/zeit/now-client) [![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/zeit)
 
-The official Node.js client for deploying to [Now](https://zeit.co/now).
+The official Node.js client for deploying to [Now](https://zeit.co/now). It supports v1 and v2 deployments.
 
 ## Usage
 
@@ -18,7 +17,10 @@ yarn add now-client
 Next, load it:
 
 ```js
-const createDeployment = require('now-client')
+// v2
+const { createDeployment } = require('now-client');
+// v1
+const { createLegacyDeployment } = require('now-client');
 ```
 
 Then call inside a `for...of` loop to follow the progress with the following arguments:
@@ -28,16 +30,19 @@ Then call inside a `for...of` loop to follow the progress with the following arg
 
 ```js
 async function deploy() {
-  let deployment
+  let deployment;
 
-  for await(const event of createDeployment('/Users/zeit-user/projects/front', { token: process.env.TOKEN })) {
+  for await (const event of createDeployment(
+    '/Users/zeit-user/projects/front',
+    { token: process.env.TOKEN }
+  )) {
     if (event.type === 'ready') {
-      deployment = event.payload
-      break
+      deployment = event.payload;
+      break;
     }
   }
 
-  return deployment
+  return deployment;
 }
 ```
 
@@ -54,13 +59,12 @@ Full list of events:
   'ready',
   'error',
   // Build events (receive build object as payload)
-  'build-state-changed',
-]
+  'build-state-changed'
+];
 ```
 
 You can also get the events set programmatically:
 
 ```js
-import { EVENTS } from 'now-client'
+import { EVENTS } from 'now-client';
 ```
-
