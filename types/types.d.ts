@@ -28,12 +28,12 @@ declare interface Deployment {
   public: boolean;
   ownerId: string;
   readyState:
-    | 'INITIALIZING'
-    | 'ANALYZING'
-    | 'BUILDING'
-    | 'DEPLOYING'
-    | 'READY'
-    | 'ERROR';
+  | 'INITIALIZING'
+  | 'ANALYZING'
+  | 'BUILDING'
+  | 'DEPLOYING'
+  | 'READY'
+  | 'ERROR';
   createdAt: string;
   createdIn: string;
   env: {
@@ -54,12 +54,12 @@ declare interface DeploymentBuild {
   createdIn: string;
   deployedTo: string;
   readyState:
-    | 'INITIALIZING'
-    | 'ANALYZING'
-    | 'BUILDING'
-    | 'DEPLOYING'
-    | 'READY'
-    | 'ERROR';
+  | 'INITIALIZING'
+  | 'ANALYZING'
+  | 'BUILDING'
+  | 'DEPLOYING'
+  | 'READY'
+  | 'ERROR';
   readyStateAt: string;
   path: string;
 }
