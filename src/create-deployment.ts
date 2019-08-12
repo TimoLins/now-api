@@ -1,7 +1,7 @@
 import { readdir as readRootFolder, lstatSync } from 'fs-extra'
 
 import readdir from 'recursive-readdir'
-import hashes from './utils/hashes'
+import hashes, { mapToObject } from './utils/hashes'
 import uploadAndDeploy from './upload'
 import { getNowIgnore } from './utils'
 import { DeploymentError } from './errors'
@@ -57,7 +57,7 @@ export default function buildCreateDeployment(version: number) {
 
     const files = await hashes(fileList)
 
-    yield { type: 'hashes-calculated', payload: files }
+    yield { type: 'hashes-calculated', payload: mapToObject(files) }
 
     const { token, teamId, force, defaultName, ...metadata } = options
 

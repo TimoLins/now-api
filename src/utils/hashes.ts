@@ -19,29 +19,44 @@ function hash(buf: Buffer): string {
 }
 
 /**
-  * Computes hashes for the contents of each file given.
-  *
-  * @param {Array} of {String} full paths
-  * @return {Map}
-  */
+ * Transforms map to object
+ * @param map with hashed files
+ * @return {object}
+ */
+export const mapToObject = (map: Map<string, DeploymentFile>) => {
+  const obj: { [key: string]: any } = {}
+  for (const [key, value] of map) {
+    obj[key] = value
+  }
+
+  return obj
+}
+
+/**
+ * Computes hashes for the contents of each file given.
+ *
+ * @param {Array} of {String} full paths
+ * @return {Map}
+ */
 async function hashes(files: string[]): Promise<Map<string, DeploymentFile>> {
   const map = new Map()
 
   await Promise.all(
-    files.map(async (name: string): Promise<void> => {
-      const data = await fs.readFile(name)
+    files.map(
+      async (name: string): Promise<void> => {
+        const data = await fs.readFile(name)
 
-      const h = hash(data)
-      const entry = map.get(h)
+        const h = hash(data)
+        const entry = map.get(h)
 
-      if (entry) {
-        entry.names.push(name)
-      } else {
-        map.set(hash(data), { names: [name], data })
-      }
-    })
+        if (entry) {
+          entry.names.push(name)
+        } else {
+          map.set(h, { names: [name], data })
+        }
+      },
+    ),
   )
-
   return map
 }
 
