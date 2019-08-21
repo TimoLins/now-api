@@ -8,7 +8,7 @@ import { DeploymentError } from './errors'
 
 export { EVENTS } from './utils'
 
-export default function buildCreateDeployment(version: number) {
+export default function buildCreateDeployment(version: number): CreateDeploymentFunction {
   return async function* createDeployment(
     path: string | string[],
     options: DeploymentOptions = {}

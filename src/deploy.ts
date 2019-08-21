@@ -51,7 +51,7 @@ async function* createDeployment(
 
     if (!dpl.ok || json.error) {
       // Return error object
-      return yield { type: 'error', payload: json.error || json }
+      return yield { type: 'error', payload: json.error ? { ...json.error, status: dpl.status } : { ...json, status: dpl.status } }
     }
 
     yield { type: 'created', payload: json }

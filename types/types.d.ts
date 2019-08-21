@@ -15,6 +15,7 @@ declare interface Build {
 
 declare interface Deployment {
   id: string;
+  deploymentId?: string;
   url: string;
   name: string;
   meta: {
@@ -28,6 +29,13 @@ declare interface Deployment {
   public: boolean;
   ownerId: string;
   readyState:
+  | 'INITIALIZING'
+  | 'ANALYZING'
+  | 'BUILDING'
+  | 'DEPLOYING'
+  | 'READY'
+  | 'ERROR';
+  state?:
   | 'INITIALIZING'
   | 'ANALYZING'
   | 'BUILDING'
@@ -54,6 +62,13 @@ declare interface DeploymentBuild {
   createdIn: string;
   deployedTo: string;
   readyState:
+  | 'INITIALIZING'
+  | 'ANALYZING'
+  | 'BUILDING'
+  | 'DEPLOYING'
+  | 'READY'
+  | 'ERROR';
+  state?:
   | 'INITIALIZING'
   | 'ANALYZING'
   | 'BUILDING'
@@ -100,3 +115,5 @@ declare interface NowJsonOptions {
   type?: 'NPM' | 'STATIC' | 'DOCKER';
   version?: number;
 }
+
+declare type CreateDeploymentFunction = (path: string | string[], options?: DeploymentOptions) => AsyncIterableIterator<any>;

@@ -60,19 +60,23 @@ export default async function* checkDeploymentStatus(
     } else {
       // Deployment polling
       const deploymentData = await fetch(
-        `${apiDeployments}/${deployment.id}${
+        `${apiDeployments}/${deployment.id || deployment.deploymentId}${
           teamId ? `?teamId=${teamId}` : ''
         }`,
         token
       );
       const deploymentUpdate = await deploymentData.json();
 
+      if (deploymentUpdate.error) {
+        return yield { type: 'error', payload: deploymentUpdate.error }
+      }
+
       if (isReady(deploymentUpdate)) {
         return yield { type: 'ready', payload: deploymentUpdate };
       }
 
       if (isFailed(deploymentUpdate)) {
-        return yield { type: 'error', payload: deploymentUpdate };
+        return yield { type: 'error', payload: deploymentUpdate.error || deploymentUpdate };
       }
     }
 
