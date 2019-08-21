@@ -10,7 +10,7 @@ describe('create v1 deployment', () => {
   afterEach(async () => {
     if (deployment) {
       const response = await fetch(
-        `${API_DELETE_DEPLOYMENTS_LEGACY}/${deployment.deploymentId}`,
+        `${API_DELETE_DEPLOYMENTS_LEGACY}/${deployment.deploymentId || deployment.uid}`,
         TOKEN,
         {
           method: 'DELETE'
@@ -32,7 +32,7 @@ describe('create v1 deployment', () => {
       if (event.type === 'ready') {
         deployment = event.payload
         if (deployment) {
-          expect(deployment.readyState).toEqual('READY')
+          expect(deployment.readyState || deployment.state).toEqual('READY')
           break
         }
       }
@@ -50,7 +50,7 @@ describe('create v1 deployment', () => {
       if (event.type === 'ready') {
         deployment = event.payload
         if (deployment) {
-          expect(deployment.readyState).toEqual('READY')
+          expect(deployment.readyState || deployment.state).toEqual('READY')
           break
         }
       }
@@ -68,7 +68,7 @@ describe('create v1 deployment', () => {
       if (event.type === 'ready') {
         deployment = event.payload
         if (deployment) {
-          expect(deployment.readyState).toEqual('READY')
+          expect(deployment.readyState || deployment.state).toEqual('READY')
           break
         }
       }

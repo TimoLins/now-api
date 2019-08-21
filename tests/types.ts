@@ -16,6 +16,7 @@ interface Build {
 export interface Deployment {
   id: string;
   deploymentId?: string;
+  uid?: string;
   url: string;
   name: string;
   meta: {
@@ -29,6 +30,13 @@ export interface Deployment {
   public: boolean;
   ownerId: string;
   readyState:
+  | 'INITIALIZING'
+  | 'ANALYZING'
+  | 'BUILDING'
+  | 'DEPLOYING'
+  | 'READY'
+  | 'ERROR';
+  state?:
   | 'INITIALIZING'
   | 'ANALYZING'
   | 'BUILDING'
